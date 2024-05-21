@@ -94,7 +94,7 @@ Picture * load_picture_file(char *filename) {
             set_transparency_flag(&(pic->pic_squares[i]), 0);
             set_filled_flag(&(pic->pic_squares[i]), 0);
             set_correct_flag(&(pic->pic_squares[i]), 0);
-            (pic->pic_squares[i]).pal_entry = fgetc(fp) + 1;
+            (pic->pic_squares[i]).pal_entry = fgetc(fp);
         }
     } else {
         bytes_processed = 0;
@@ -108,7 +108,7 @@ Picture * load_picture_file(char *filename) {
                     set_transparency_flag(&(pic->pic_squares[bytes_processed]), 0);
                     set_filled_flag(&(pic->pic_squares[bytes_processed]), 0);
                     set_correct_flag(&(pic->pic_squares[bytes_processed]), 0);
-                    (pic->pic_squares[bytes_processed]).pal_entry = (first_byte & 0x7F)+1;    
+                    (pic->pic_squares[bytes_processed]).pal_entry = (first_byte & 0x7F);    
                     bytes_processed++;
                 }
             } else {
@@ -116,7 +116,7 @@ Picture * load_picture_file(char *filename) {
                 set_transparency_flag(&(pic->pic_squares[bytes_processed]), 0);
                 set_filled_flag(&(pic->pic_squares[bytes_processed]), 0);
                 set_correct_flag(&(pic->pic_squares[bytes_processed]), 0);
-                (pic->pic_squares[bytes_processed]).pal_entry = first_byte + 1;
+                (pic->pic_squares[bytes_processed]).pal_entry = first_byte;
                 bytes_processed++;
             }
         }
@@ -156,6 +156,14 @@ Picture * load_picture_file(char *filename) {
     return pic;
 }
 
+ColorSquare *get_color_square(Picture *p, int x, int y) {
+    if (x < 0 || y < 0 || x >= p->w || y >= p->h) {
+        printf("Warning! Out of bounds!\n");
+        return &(p->pic_squares[0]);
+    }
+    return &(p->pic_squares[y*p->w + x]);
+}
+
 int get_picture_color_at(Picture *p, int x, int y) {
     if (x < 0 || y < 0 || x >= p->w || y >= p->h) {
         return -1;
@@ -171,4 +179,10 @@ void free_picture_file(Picture *p) {
     if (p->pic_squares != NULL) {
         free(p->pic_squares);
     }
+}
+
+void clear_global_game_state(GameGlobals *g) {
+    g->cursor_x = 0;
+    g->cursor_y = 0;
+    g->palette_index = 0;
 }

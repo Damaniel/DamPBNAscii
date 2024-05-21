@@ -1,7 +1,7 @@
-.EXE
-.PIC
-.exe
-.pic
+*.EXE
+*.PIC
+*.exe
+*.pic
 SRC/*.O
 SRC/*.o
 tools/output/*.png

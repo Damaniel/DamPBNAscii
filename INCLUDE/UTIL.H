@@ -1,4 +1,5 @@
 #pragma once
+#include "globals.h"
 
 /* The flags are as follows:
 
@@ -13,22 +14,7 @@
 #define COMPRESSION_NONE   0
 #define COMPRESSION_RLE    1
 
-typedef struct {
-    unsigned char pal_entry;
-    unsigned char flags;
-} ColorSquare;
-
-typedef struct {
-  unsigned char version;
-  char image_name[32 + 1];
-  unsigned short w;
-  unsigned short h;
-  unsigned char category;
-  unsigned char num_colors;
-  unsigned int num_mistakes;
-  unsigned char pal[64][3];
-  ColorSquare *pic_squares;
-} Picture;
+extern void clear_global_game_state(GameGlobals *g);
 
 extern void set_transparency_flag(ColorSquare *c, unsigned char flag);
 
@@ -47,3 +33,5 @@ extern Picture * load_picture_file(char *filename);
 extern void free_picture_file(Picture *p);
 
 extern int get_picture_color_at(Picture *p, int x, int y);
+
+extern ColorSquare *get_color_square(Picture *p, int x, int y);

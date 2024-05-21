@@ -1,8 +1,20 @@
+#include <malloc.h>
 #include "textdraw.h"
 #include "util.h"
+#include "uiconsts.h"
+#include "render.h"
+#include "globals.h"
+
+char palette_chars[PALETTE_ENTRIES + 1] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$#";
+
+GameGlobals g_globals;
+
+void print_mem_stats() {
+    printf("Available memory: %u bytes\n", _memavl());
+    printf("Maximum allocatable chunk: %u bytes\n", _memmax());
+}
 
 int main(void) {
-    Picture *p;
     int i, j, c;
     char border, bg, title, highlight;
 
@@ -10,39 +22,21 @@ int main(void) {
     set_bg_intensity(1);
     clear_screen();
 
-    p = load_picture_file("test2.pic");
+    clear_global_game_state(&g_globals);
 
-    border = make_attr(15, 0);
-    bg = make_attr(1, 9);
-    title = make_attr(15, 3);
-    highlight = make_attr(0, 14);
+    g_globals.current_picture = load_picture_file("test1.pic");
 
-    fill_box_at(0, 0, 79, 42, 177, bg);
-    hline_at(0, 0, 80, ' ', title);
-
-    box_at(4, 4, 37, 21, BORDER_DOUBLE, border);
-    fill_box_at(5, 5, 36, 20, ' ', border);
-    char_at(60, 5, '1', highlight);
-
-    for (j=0;j<16;j++) {
-        for(i=0;i<16;i++) {
-            if(is_transparent(&(p->pic_squares[j*p->w + i]))) {
-                char_at(5+i*2, 5+j, 219, make_attr(15, 0));
-                char_at(5+i*2+1, 5+j, 219, make_attr(15, 0));
-
-            }
-            else {
-                c = get_picture_color_at(p, i, j) - 1;
-                char_at(5+i*2, 5+j, p->pal[c][0], make_attr(p->pal[c][1], p->pal[c][2]));
-                char_at(5+i*2+1, 5+j, p->pal[c][0], make_attr(p->pal[c][1], p->pal[c][2]));
-            }
+    for(i=0;i<g_globals.current_picture->w; i++) {
+        for(j=0;j<g_globals.current_picture->h; j++) {
+            set_filled_flag(&(g_globals.current_picture->pic_squares[j * g_globals.current_picture->w + i]), 1);
         }
     }
+    draw_all();
 
     getchar();
 
     clear_screen();
-    free_picture_file(p);
+    free_picture_file(g_globals.current_picture);
 
     return 0;
 }
