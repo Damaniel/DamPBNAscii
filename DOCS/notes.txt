@@ -1,0 +1,47 @@
+Picture format
+
+Picture file format:
+Header:
+  - 4 bytes - "DPTM"
+  - 2 bytes - x resolution
+  - 2 bytes - y resolution
+  - 1 bytes - category:
+              0 - uncategorized
+              1 - miscellaneous
+              2 - landscape
+              3 - animal
+              4 - fantasy
+              5 - abstract
+              7 - pattern
+              >7 - unknown.  Newer versions may have category values >7
+  - 32 bytes - picture name.  Shown on gallery, not on in-progress work
+  - 1 byte  - number of colors in the palette (1-64)
+  - 1 byte  - compression type:
+              0 - uncompressed
+              1 - run length encoded
+  - 192 bytes - color palette (64 sets of ASCII character, FG, BG).  If there are 
+                fewer than 64 colors, extra colors should be set to 0, 0, 0
+  - 1 byte    - does this image have transparency data?  If so, it will be at the 
+                end of the file, after the image data 
+  - 2 bytes - the number of playable squares in this v2 picture
+  - 18 bytes - padding to bring the total to 256 bytes
+
+Data:
+  - an (x * y) grid of image data, read from left to right, top to bottom.  The data
+    itself can be run length encoded.  If the upper two bits are 00, then the lower six
+    bits specify the color number of the location.  If the uppermost bit is 1,
+    then the next byte specifies the number of times to repeat the color
+    and the lower six bits of the first byte specifies the color number.  Runs of up
+    to 255 can be created.
+    
+    Example:
+    00110000 - 1 square of color 48
+    00100000 00001000 - 1 square of color 32, 1 square of color 8
+    11010000 00001100 - 12 squares of color 16
+Transparency data:
+  - an (x * y) grid of data, read from left to right, top to bottom.  If the value is
+    0, then that location will have no number assigned on the image, and therefore will
+    not be drawable.  If set to 1, the location will work as it did in previous
+    versions of the file.  This data is run length encoded in the same method as the
+    image data, in the same circumstances (i.e. if the image data is run length encoded,
+    so is the transparency data)
