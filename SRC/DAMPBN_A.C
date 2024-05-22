@@ -23,15 +23,63 @@
 char palette_chars[PALETTE_ENTRIES + 1] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$#";
 GameGlobals g_globals;
 
+void (__interrupt __far *old_isr)();
+volatile long g_clock_ticks;
+char g_timer_overflow;
+
+void __interrupt __far timer_func(void) {
+    g_clock_ticks++;
+}
+
+void fix_time(void) {
+    // Take the number of ticks (presumably measured at 30 hertz) and 
+}
+
 void change_state(State new_state) {
     g_globals.previous_state = g_globals.current_state;
     g_globals.current_state = new_state;
 
     // process state transition stuff here
     switch(g_globals.current_state) {
+        case STATE_GAME:
+            // Todo - remove this as we add more complete code
+            g_globals.current_picture = load_picture_file("test2.pic");
+            clear_render_components(&(g_globals.render));
+            draw_all();
+            draw_puzzle_cursor();
+            break;
         case STATE_EXIT:
             g_globals.exit_game = 1;
             break;
+    }
+}
+
+void start_game_timer(void) {
+    g_globals.timer_running = 1;
+    g_globals.elapsed_seconds = 0;
+    g_globals.start_ticks = g_clock_ticks;
+}
+
+void pause_game_timer(void) {
+    g_globals.timer_running = 0;
+}
+
+void process_timing(void) {
+    long elapsed_ticks = g_clock_ticks - g_globals.start_ticks;
+    // The timer ticks at 18.2 ticks per second.  Every 5 seconds,
+    // we wait 19 ticks instead of 18, to keep the underlying timer
+    // as reasonably accurate as possible.  
+    if (elapsed_ticks >= 19 && g_timer_overflow >= 5) {
+        g_globals.elapsed_seconds++;
+        g_timer_overflow = 0;
+        g_globals.start_ticks = g_clock_ticks;
+        g_globals.render.timer_area = 1;
+    }
+    else if (elapsed_ticks >= 18) {
+        g_globals.elapsed_seconds++;
+        g_timer_overflow++;
+        g_globals.start_ticks = g_clock_ticks;
+        g_globals.render.timer_area = 1;
     }
 }
 
@@ -40,24 +88,41 @@ void print_mem_stats() {
     printf("Maximum allocatable chunk: %u bytes\n", _memmax());
 }
 
-int main(void) {
-    int done = 0;
-    unsigned short key;
-    int i, j, c;
+void game_init() {
+    // Reset the tick counter
+    g_clock_ticks = 0;
 
+    // Prep our pre-written timer interrupt function
+    old_isr = _dos_getvect(0x1C);
+    _dos_setvect(0x1C, timer_func);
+
+    // Set up the screen
     set_text_mode(MODE_80X25);
     set_bg_intensity(1);
     clear_screen();
     hide_cursor();
 
+    // 
     clear_global_game_state(&g_globals);
     change_state(STATE_GAME);
+}
 
-    g_globals.current_picture = load_picture_file("test2.pic");
+void game_cleanup(void) {
+    // Reset the display
+    clear_screen();
+    show_cursor();
 
-    clear_render_components(&(g_globals.render));
-    draw_all();
-    draw_puzzle_cursor();
+    // todo - remove this once we get the puzzle loader finished
+    free_picture_file(g_globals.current_picture);
+
+    // restore the timer handler
+    _dos_setvect(0x1C, old_isr);
+}
+
+int main(void) {
+    unsigned short key;
+
+    game_init();
 
     while (!g_globals.exit_game) {
         key = get_input_key();
@@ -65,12 +130,14 @@ int main(void) {
             // Process input for the current state
             process_input(key);
         }
+        process_timing();
         render_screen();
+        // Add a very short delay (2ms).  This shouldn't affect timing, even on slower systems.
+        // This can be removed if it causes issues.
+        delay(2);
     }
 
-    clear_screen();
-    show_cursor();
-    free_picture_file(g_globals.current_picture);
+    game_cleanup();
 
     return 0;
 }

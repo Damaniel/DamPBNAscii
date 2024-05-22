@@ -75,8 +75,8 @@ void draw_drawn_square(int cursor_x, int cursor_y, int viewport_x, int viewport_
     }
     else {
         char_at(DRAW_AREA_X1 + (cursor_x * 2), DRAW_AREA_Y1 + cursor_y, '.', dimmer);
-        char_at(DRAW_AREA_X1 + (cursor_x * 2) + 1, DRAW_AREA_Y1 + cursor_x, '.', dimmer);                
-        }
+        char_at(DRAW_AREA_X1 + (cursor_x * 2) + 1, DRAW_AREA_Y1 + cursor_y, '.', dimmer);                
+    }
 }
 
 void draw_ui_base(void) {
@@ -235,19 +235,48 @@ void draw_legend(void) {
 
 void draw_information_text(void) {
     char standard = make_attr(COLOR_WHITE, COLOR_BLACK);
+    char header = make_attr(COLOR_CYAN, COLOR_BLACK);
     fill_box_at(STATUS_AREA_X1, STATUS_AREA_Y1, STATUS_AREA_X2, STATUS_AREA_Y2, ' ', standard);
+
+    // fill in the headers
+    string_at(CATEGORY_TEXT_X, CATEGORY_TEXT_Y, "Category:", header);
+    string_at(PROGRESS_TEXT_X, PROGRESS_TEXT_Y, "Progress:", header);
+    string_at(MISTAKES_TEXT_X, MISTAKES_TEXT_Y, "Mistakes:", header);
+    string_at(TIME_TEXT_X, TIME_TEXT_Y, "Time:", header);
 }
 
 void draw_timer(void) {
+    char standard = make_attr(COLOR_WHITE, COLOR_BLACK);
+    char time_string[10];
+    int hours, minutes, seconds;
 
+    hours = g_globals.elapsed_seconds / 3600;
+    minutes = (g_globals.elapsed_seconds - (hours * 3600)) / 60;
+    seconds = (g_globals.elapsed_seconds - (hours * 3600)) % 60;
+    if (hours > 99) {
+        sprintf(time_string, "99:59:59");
+    } 
+    else {
+        sprintf(time_string, "%.2d:%.2d:%.2d", hours, minutes, seconds);
+    }
+    string_at(TIME_VALUE_X, TIME_VALUE_Y, time_string, standard);
 }
 
 void draw_progress(void) {
+    char standard = make_attr(COLOR_WHITE, COLOR_BLACK);
+    char progress[16];
 
+    string_at(PROGRESS_VALUE_X, PROGRESS_VALUE_Y, "           ", standard);
+    sprintf(progress, "%d/%d", g_globals.progress, g_globals.current_picture->pic_squares);
+    string_at(PROGRESS_VALUE_X, PROGRESS_VALUE_Y, progress, standard);
 }
 
 void draw_mistakes(void) {
+    char standard = make_attr(COLOR_WHITE, COLOR_BLACK);
+    char mistakes[10];
 
+    sprintf(mistakes, "%d", g_globals.mistakes);
+    string_at(MISTAKES_VALUE_X, MISTAKES_VALUE_Y, mistakes, standard);
 }
 
 void draw_cursor_pos_text(void) {

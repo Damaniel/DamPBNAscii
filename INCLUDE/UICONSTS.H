@@ -20,7 +20,7 @@
  */
 #pragma once
 
-#define SW_VERSION  "v0.01 (05/21/2024)"
+#define SW_VERSION  "v0.04 (05/22/2024)"
 
 #define DRAW_VISIBLE_WIDTH  16
 #define DRAW_VISIBLE_HEIGHT 16

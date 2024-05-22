@@ -20,6 +20,9 @@
  */
 #pragma once
 
+#define TIMER_30HZ      0x965C
+#define TIMER_DEFAULT   0xFFFF
+
 // This file contains all struct definitions, including the GameGlobals object, which contains all of the 
 // variables specific to the (global) instance of the game.
 
@@ -86,7 +89,14 @@ typedef struct {
     State previous_state;
     Picture *current_picture;
     RenderComponents render;
+    unsigned char timer_running;
+    long start_ticks;
+    long elapsed_seconds;
 } GameGlobals;
+
+extern void (__interrupt __far *old_isr)();
+extern volatile long g_clock_ticks;
+extern unsigned char g_timer_overflow;
 
 #define PALETTE_ENTRIES     64
 extern char palette_chars[PALETTE_ENTRIES + 1];

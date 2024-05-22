@@ -212,4 +212,7 @@ void clear_global_game_state(GameGlobals *g) {
     g->current_state = STATE_NONE;
     g->previous_state = STATE_NONE;
     g->exit_game = 0;
+    g->elapsed_seconds = 0;
+    g->timer_running = 0;
+    g->start_ticks = 0;
 }

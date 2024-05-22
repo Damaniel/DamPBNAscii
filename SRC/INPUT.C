@@ -200,15 +200,21 @@ void process_game_input(short key) {
                     set_filled_flag(cs, 1);
                     if (cs->pal_entry == g_globals.palette_index) {
                         set_correct_flag(cs, 1);
+                        ++g_globals.progress;
+                        g_globals.render.progress_area = 1;
                     } 
                     else {
                         set_correct_flag(cs, 0);
+                        ++g_globals.mistakes;
+                        g_globals.render.mistake_area = 1;
                     }
                 }
                 else {
                     // If filled and incorrect, clear the color
                     if(!is_correct(cs)) {
                         set_filled_flag(cs, 0);
+                        --g_globals.mistakes;
+                        g_globals.render.mistake_area = 1;
                     }
                 }
                 g_globals.render.drawn_square = 1;
