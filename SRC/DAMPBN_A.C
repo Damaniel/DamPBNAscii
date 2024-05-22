@@ -48,11 +48,12 @@ int main(void) {
     set_text_mode(MODE_80X25);
     set_bg_intensity(1);
     clear_screen();
+    hide_cursor();
 
     clear_global_game_state(&g_globals);
     change_state(STATE_GAME);
 
-    g_globals.current_picture = load_picture_file("test1.pic");
+    g_globals.current_picture = load_picture_file("test2.pic");
 
     clear_render_components(&(g_globals.render));
     draw_all();
@@ -64,13 +65,11 @@ int main(void) {
             // Process input for the current state
             process_input(key);
         }
-        if (g_globals.update_screen) {
-            update_screen();
-            g_globals.update_screen = 0;
-        }
+        render_screen();
     }
 
     clear_screen();
+    show_cursor();
     free_picture_file(g_globals.current_picture);
 
     return 0;

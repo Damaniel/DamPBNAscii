@@ -44,8 +44,178 @@ _inline unsigned char get_shift_state(short key) {
 }
 
 void process_game_input(short key) {
-    if (get_scan_code(key) == KEY_ESC) {
-        change_state(STATE_EXIT);
+    int proposed_cursor, proposed_viewport, offset;
+    ColorSquare *cs;
+
+    switch (get_scan_code(key)) {
+        case KEY_ESC:
+            change_state(STATE_EXIT);
+            break;
+        case KEY_LEFT_BRACKET:
+            g_globals.old_palette_index = g_globals.palette_index;
+            g_globals.palette_index -= 1;
+            if (g_globals.palette_index < 0) {
+                g_globals.palette_index = g_globals.current_picture->num_colors - 1;
+            }
+            g_globals.render.palette_cursor = 1;
+            break;
+        case KEY_RIGHT_BRACKET:
+            g_globals.old_palette_index = g_globals.palette_index;
+            g_globals.palette_index += 1;
+            if (g_globals.palette_index >= g_globals.current_picture->num_colors) {
+                g_globals.palette_index = 0;
+            }
+            g_globals.render.palette_cursor = 1;
+            break;
+        case KEY_LEFT:
+            if (get_shift_state(key) & STATE_RIGHT_SHIFT || get_shift_state(key) & STATE_LEFT_SHIFT) {
+                proposed_cursor = g_globals.cursor_x;
+                proposed_viewport = g_globals.viewport_x - DRAW_VISIBLE_WIDTH;
+            } else {
+                proposed_cursor = g_globals.cursor_x - 1;
+                proposed_viewport = g_globals.viewport_x;
+            }
+            if (proposed_cursor < 0) {
+                proposed_viewport = g_globals.viewport_x - 1;
+                proposed_cursor = 0;
+            }
+            if (proposed_viewport < 0) {
+                proposed_viewport = 0;
+                // If we were already on the left edge then move the cursor all the way over
+                if (g_globals.viewport_x == proposed_viewport) {
+                    proposed_cursor = 0;
+                }
+            }
+            g_globals.old_cursor_y = g_globals.cursor_y;
+            g_globals.old_cursor_x = g_globals.cursor_x;
+            g_globals.cursor_x = proposed_cursor;
+            g_globals.old_viewport_x = g_globals.viewport_x;
+            g_globals.viewport_x = proposed_viewport;
+            g_globals.render.cursor_pos_area = 1;
+            g_globals.render.puzzle_cursor = 1;
+            // If the viewport moved, we have to redraw the puzzle
+            if (proposed_viewport != g_globals.old_viewport_x) {
+                g_globals.render.puzzle = 1;
+            }
+            break;        
+        case KEY_RIGHT:
+            if (get_shift_state(key) & STATE_RIGHT_SHIFT || get_shift_state(key) & STATE_LEFT_SHIFT) {
+                proposed_cursor = g_globals.cursor_x;
+                proposed_viewport = g_globals.viewport_x + DRAW_VISIBLE_WIDTH;
+            } else {
+                proposed_cursor = g_globals.cursor_x + 1;
+                proposed_viewport = g_globals.viewport_x;
+            }
+            if (proposed_cursor >= DRAW_VISIBLE_WIDTH) {
+                proposed_viewport = g_globals.viewport_x + 1;
+                proposed_cursor = DRAW_VISIBLE_WIDTH - 1;
+            }
+            if (proposed_viewport >= g_globals.current_picture->w - DRAW_VISIBLE_WIDTH) {
+                proposed_viewport = g_globals.current_picture->w - DRAW_VISIBLE_WIDTH;
+                // If we were already on the right edge then move the cursor all the way over
+                if (g_globals.viewport_x == proposed_viewport) {
+                    proposed_cursor = DRAW_VISIBLE_WIDTH - 1;
+                }
+            }
+            g_globals.old_cursor_y = g_globals.cursor_y;
+            g_globals.old_cursor_x = g_globals.cursor_x;
+            g_globals.cursor_x = proposed_cursor;
+            g_globals.old_viewport_x = g_globals.viewport_x;
+            g_globals.viewport_x = proposed_viewport;
+            g_globals.render.cursor_pos_area = 1;
+            g_globals.render.puzzle_cursor = 1;
+            // If the viewport moved, we have to redraw the puzzle
+            if (proposed_viewport != g_globals.old_viewport_x) {
+                g_globals.render.puzzle = 1;
+            }
+            break;
+        case KEY_UP:
+            if (get_shift_state(key) & STATE_RIGHT_SHIFT || get_shift_state(key) & STATE_LEFT_SHIFT) {
+                proposed_cursor = g_globals.cursor_y;
+                proposed_viewport = g_globals.viewport_y - DRAW_VISIBLE_HEIGHT;
+            } else {
+                proposed_cursor = g_globals.cursor_y - 1;
+                proposed_viewport = g_globals.viewport_y;
+            }
+            if (proposed_cursor < 0) {
+                proposed_viewport = g_globals.viewport_y - 1;
+                proposed_cursor = 0;
+            }
+            if (proposed_viewport < 0) {
+                proposed_viewport = 0;
+                // If we were already on the top edge then move the cursor all the way over
+                if (g_globals.viewport_y == proposed_viewport) {
+                    proposed_cursor = 0;
+                }
+            }
+            g_globals.old_cursor_x = g_globals.cursor_x;
+            g_globals.old_cursor_y = g_globals.cursor_y;
+            g_globals.cursor_y = proposed_cursor;
+            g_globals.old_viewport_y = g_globals.viewport_y;
+            g_globals.viewport_y = proposed_viewport;
+            g_globals.render.cursor_pos_area = 1;
+            g_globals.render.puzzle_cursor = 1;
+            // If the viewport moved, we have to redraw the puzzle
+            if (proposed_viewport != g_globals.old_viewport_y) {
+                g_globals.render.puzzle = 1;
+            }
+            break;  
+        case KEY_DOWN:
+            if (get_shift_state(key) & STATE_RIGHT_SHIFT || get_shift_state(key) & STATE_LEFT_SHIFT) {
+                proposed_cursor = g_globals.cursor_y;
+                proposed_viewport = g_globals.viewport_y + DRAW_VISIBLE_HEIGHT;
+            } else {
+                proposed_cursor = g_globals.cursor_y + 1;
+                proposed_viewport = g_globals.viewport_y;
+            }
+            if (proposed_cursor >= DRAW_VISIBLE_HEIGHT) {
+                proposed_viewport = g_globals.viewport_y + 1;
+                proposed_cursor = DRAW_VISIBLE_HEIGHT - 1;
+            }
+            if (proposed_viewport >= g_globals.current_picture->h - DRAW_VISIBLE_HEIGHT) {
+                proposed_viewport = g_globals.current_picture->h - DRAW_VISIBLE_HEIGHT;
+                // If we were already on the bottom edge then move the cursor all the way over
+                if (g_globals.viewport_y == proposed_viewport) {
+                    proposed_cursor = DRAW_VISIBLE_HEIGHT - 1;
+                }
+            }
+            g_globals.old_cursor_x = g_globals.cursor_x;
+            g_globals.old_cursor_y = g_globals.cursor_y;
+            g_globals.cursor_y = proposed_cursor;
+            g_globals.old_viewport_y = g_globals.viewport_y;
+            g_globals.viewport_y = proposed_viewport;
+            g_globals.render.cursor_pos_area = 1;
+            g_globals.render.puzzle_cursor = 1;
+            // If the viewport moved, we have to redraw the puzzle
+            if (proposed_viewport != g_globals.old_viewport_y) {
+                g_globals.render.puzzle = 1;
+            }
+            break;
+        case KEY_SPACE:
+            // If already correct, do nothing
+            cs = get_color_square(g_globals.current_picture, g_globals.cursor_x + g_globals.viewport_x, g_globals.cursor_y + g_globals.viewport_y);
+            if (!is_transparent(cs)) {
+                // If not filled, set the color to the current palette color
+                if (!is_filled_in(cs)) {
+                    set_filled_flag(cs, 1);
+                    if (cs->pal_entry == g_globals.palette_index) {
+                        set_correct_flag(cs, 1);
+                    } 
+                    else {
+                        set_correct_flag(cs, 0);
+                    }
+                }
+                else {
+                    // If filled and incorrect, clear the color
+                    if(!is_correct(cs)) {
+                        set_filled_flag(cs, 0);
+                    }
+                }
+                g_globals.render.drawn_square = 1;
+                g_globals.render.puzzle_cursor = 1;
+            }
+            break;
+            
     }
 }
 

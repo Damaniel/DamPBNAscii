@@ -36,7 +36,47 @@ void draw_all(void) {
     g_globals.render.mistake_area = 1;
     g_globals.render.progress_area = 1;
     g_globals.render.information_area = 1;
-    update_screen();
+    render_screen();
+}
+
+void render_screen(void) {
+    switch(g_globals.current_state) {
+        case STATE_GAME:
+            render_game_state();
+            break;
+    }
+}
+
+void draw_drawn_square(int cursor_x, int cursor_y, int viewport_x, int viewport_y) {
+    char standard = make_attr(COLOR_WHITE, COLOR_BLACK);
+    char dimmer = make_attr(COLOR_DARK_GRAY, COLOR_BLACK);
+    char wrong = make_attr(COLOR_WHITE, COLOR_RED);
+    char cur_char, attr;
+    ColorSquare *cs;
+
+    cs = get_color_square(g_globals.current_picture, cursor_x + viewport_x, cursor_y + viewport_y);
+
+    if (!is_transparent(cs)) {
+        if(is_filled_in(cs)) {
+            if(is_correct(cs)) {
+                attr = make_attr(g_globals.current_picture->pal[cs->pal_entry][1], g_globals.current_picture->pal[cs->pal_entry][2]);
+                char_at(DRAW_AREA_X1 + (cursor_x * 2), DRAW_AREA_Y1 + cursor_y, g_globals.current_picture->pal[cs->pal_entry][0], attr);
+                char_at(DRAW_AREA_X1 + (cursor_x * 2) + 1, DRAW_AREA_Y1 + cursor_y, g_globals.current_picture->pal[cs->pal_entry][0], attr);   
+            }
+            else {
+                char_at(DRAW_AREA_X1 + (cursor_x * 2), DRAW_AREA_Y1 + cursor_y, 'X', wrong);
+                char_at(DRAW_AREA_X1 + (cursor_x * 2) + 1, DRAW_AREA_Y1 + cursor_y, 'X', wrong);                        
+            }
+        }
+        else {
+            cur_char = get_picture_color_at(g_globals.current_picture, cursor_x  + viewport_x, cursor_y + viewport_y);
+            char_at(DRAW_AREA_X1 + (cursor_x * 2) + 1, DRAW_AREA_Y1 + cursor_y, palette_chars[cur_char], dimmer);
+        }
+    }
+    else {
+        char_at(DRAW_AREA_X1 + (cursor_x * 2), DRAW_AREA_Y1 + cursor_y, '.', dimmer);
+        char_at(DRAW_AREA_X1 + (cursor_x * 2) + 1, DRAW_AREA_Y1 + cursor_x, '.', dimmer);                
+        }
 }
 
 void draw_ui_base(void) {
@@ -63,6 +103,7 @@ void draw_puzzle_box_area(void) {
 void draw_puzzle_area(void) {
     char standard = make_attr(COLOR_WHITE, COLOR_BLACK);
     char dimmer = make_attr(COLOR_DARK_GRAY, COLOR_BLACK);
+    char wrong = make_attr(COLOR_WHITE, COLOR_RED);
     int i, j;
     char cur_char, attr;
     ColorSquare *cs;
@@ -70,39 +111,93 @@ void draw_puzzle_area(void) {
     fill_box_at(DRAW_AREA_X1, DRAW_AREA_Y1, DRAW_AREA_X2, DRAW_AREA_Y2, ' ', standard);
     for (j=0; j < DRAW_VISIBLE_HEIGHT; j++) {
         for (i=0; i < DRAW_VISIBLE_WIDTH; i++) {
-            cs = get_color_square(g_globals.current_picture, i + g_globals.viewport_x, j + g_globals.viewport_y);
-            if (!is_transparent(cs)) {
-                if(is_filled_in(cs)) {
-                    attr = make_attr(g_globals.current_picture->pal[cs->pal_entry][1], g_globals.current_picture->pal[cs->pal_entry][2]);
-                    char_at(DRAW_AREA_X1 + (i * 2), DRAW_AREA_Y1 + j, g_globals.current_picture->pal[cs->pal_entry][0], attr);
-                    char_at(DRAW_AREA_X1 + (i * 2) + 1, DRAW_AREA_Y1 + j, g_globals.current_picture->pal[cs->pal_entry][0], attr);
-                }
-                else {
-                    cur_char = get_picture_color_at(g_globals.current_picture, i + g_globals.viewport_x, j + g_globals.viewport_y);
-                    char_at(DRAW_AREA_X1 + (i * 2) + 1, DRAW_AREA_Y1 + j, palette_chars[cur_char], dimmer);
-                }
-            }
-            else {
-                    char_at(DRAW_AREA_X1 + (i * 2), DRAW_AREA_Y1 + j, '.', dimmer);
-                    char_at(DRAW_AREA_X1 + (i * 2) + 1, DRAW_AREA_Y1 + j, '.', dimmer);                
-            }
+            draw_drawn_square(i, j, g_globals.viewport_x, g_globals.viewport_y);
+            // cs = get_color_square(g_globals.current_picture, i + g_globals.viewport_x, j + g_globals.viewport_y);
+            // if (!is_transparent(cs)) {
+            //     if(is_filled_in(cs)) {
+            //         if(is_correct(cs)) {
+            //             attr = make_attr(g_globals.current_picture->pal[cs->pal_entry][1], g_globals.current_picture->pal[cs->pal_entry][2]);
+            //             char_at(DRAW_AREA_X1 + (i * 2), DRAW_AREA_Y1 + j, g_globals.current_picture->pal[cs->pal_entry][0], attr);
+            //             char_at(DRAW_AREA_X1 + (i * 2) + 1, DRAW_AREA_Y1 + j, g_globals.current_picture->pal[cs->pal_entry][0], attr);   
+            //         }
+            //         else {
+            //             char_at(DRAW_AREA_X1 + (i * 2), DRAW_AREA_Y1 + j, 'X', wrong);
+            //             char_at(DRAW_AREA_X1 + (i * 2) + 1, DRAW_AREA_Y1 + j, 'X', wrong);                        
+            //         }
+            //     }
+            //     else {
+            //         cur_char = get_picture_color_at(g_globals.current_picture, i + g_globals.viewport_x, j + g_globals.viewport_y);
+            //         char_at(DRAW_AREA_X1 + (i * 2) + 1, DRAW_AREA_Y1 + j, palette_chars[cur_char], dimmer);
+            //     }
+            // }
+            // else {
+            //         char_at(DRAW_AREA_X1 + (i * 2), DRAW_AREA_Y1 + j, '.', dimmer);
+            //         char_at(DRAW_AREA_X1 + (i * 2) + 1, DRAW_AREA_Y1 + j, '.', dimmer);                
+            // }
         }
     }
 }
 
 void draw_puzzle_cursor() {
     char yellow = make_attr(COLOR_YELLOW, COLOR_BLACK);
-    char standard = make_attr(COLOR_WHITE, COLOR_BLACK);
+    char dimmer = make_attr(COLOR_DARK_GRAY, COLOR_BLACK);
+    char wrong = make_attr(COLOR_WHITE, COLOR_RED);
+    char invert_wrong = make_attr(COLOR_WHITE, COLOR_RED);
+
+    char color;
+    ColorSquare *old_cs, *cs;
+
+    old_cs = get_color_square(g_globals.current_picture, g_globals.old_cursor_x + g_globals.old_viewport_x, g_globals.old_cursor_y + g_globals.old_viewport_y);
+    cs = get_color_square(g_globals.current_picture, g_globals.cursor_x + g_globals.viewport_x, g_globals.cursor_y + g_globals.viewport_y);
+    color = old_cs->pal_entry;
 
     // Redraw the underlying color at the old cursor location
     // TODO: do the right thing for filled in squares
-    char_at(DRAW_AREA_X1 + (g_globals.old_cursor_x * 2), DRAW_AREA_Y1 + g_globals.old_cursor_y, ' ', standard);
+    if (is_filled_in(old_cs)) {
+        // Draw the filled in color if correct, the incorrect square if not correct
+        if (is_correct(old_cs)) {
+            char_at(DRAW_AREA_X1 + (g_globals.old_cursor_x * 2), DRAW_AREA_Y1 + g_globals.old_cursor_y, g_globals.current_picture->pal[color][0], 
+                    make_attr(g_globals.current_picture->pal[color][1], g_globals.current_picture->pal[color][2]));
+        }
+        else {
+            char_at(DRAW_AREA_X1 + (g_globals.old_cursor_x * 2), DRAW_AREA_Y1 + g_globals.old_cursor_y, 'X', wrong);
+        }
+    }
+    else {
+        if (is_transparent(old_cs)) {
+            char_at(DRAW_AREA_X1 + (g_globals.old_cursor_x * 2), DRAW_AREA_Y1 + g_globals.old_cursor_y, '.', dimmer);
+        }
+        else {
+            char_at(DRAW_AREA_X1 + (g_globals.old_cursor_x * 2), DRAW_AREA_Y1 + g_globals.old_cursor_y, ' ', dimmer);   
+        }
+    }
 
     // Draw the cursor at the new location (held in cursor_x and cursor_y)
-    char_at(DRAW_AREA_X1 + (g_globals.cursor_x * 2), DRAW_AREA_Y1 + (g_globals.cursor_y), 16, yellow);
+    if(is_filled_in(cs)) {
+        if (is_correct(cs)) {
+            char_at(DRAW_AREA_X1 + (g_globals.cursor_x * 2), DRAW_AREA_Y1 + (g_globals.cursor_y), 16, yellow);
+        }
+        else {
+            char_at(DRAW_AREA_X1 + (g_globals.cursor_x * 2), DRAW_AREA_Y1 + (g_globals.cursor_y), 16, invert_wrong);
+        }
+    }
+    else {
+        char_at(DRAW_AREA_X1 + (g_globals.cursor_x * 2), DRAW_AREA_Y1 + (g_globals.cursor_y), 16, yellow);
+    }   
 }
 
 void draw_palette_cursor() {
+    unsigned int p_x, p_y, op_x, op_y;
+    char yellow = make_attr(COLOR_YELLOW, COLOR_BLACK);
+    char standard = make_attr(COLOR_WHITE, COLOR_BLACK);
+
+    p_x = (g_globals.palette_index  / LEGEND_NUM_ROWS) * LEGEND_COL_WIDTH + LEGEND_COLS_X - 1;
+    p_y = g_globals.palette_index - ((g_globals.palette_index / LEGEND_NUM_ROWS) * LEGEND_NUM_ROWS) + LEGEND_COLS_Y;
+    op_x = (g_globals.old_palette_index / LEGEND_NUM_ROWS) * LEGEND_COL_WIDTH + LEGEND_COLS_X - 1;
+    op_y = g_globals.old_palette_index - ((g_globals.old_palette_index / LEGEND_NUM_ROWS) * LEGEND_NUM_ROWS) + LEGEND_COLS_Y;
+
+    char_at(op_x, op_y, ' ', standard);
+    char_at(p_x, p_y, 16, yellow);
 
 }
 
@@ -143,11 +238,23 @@ void draw_information_text(void) {
     fill_box_at(STATUS_AREA_X1, STATUS_AREA_Y1, STATUS_AREA_X2, STATUS_AREA_Y2, ' ', standard);
 }
 
+void draw_timer(void) {
+
+}
+
+void draw_progress(void) {
+
+}
+
+void draw_mistakes(void) {
+
+}
+
 void draw_cursor_pos_text(void) {
     char standard = make_attr(COLOR_WHITE, COLOR_BLACK);
     char cursor_pos[10];
 
-    sprintf(cursor_pos, "(%3d,%3d)", g_globals.cursor_x, g_globals.cursor_y);
+    sprintf(cursor_pos, "(%3d,%3d)", g_globals.cursor_x + g_globals.viewport_x, g_globals.cursor_y + g_globals.viewport_y);
     string_at(CURSOR_LOC_X, CURSOR_LOC_Y, cursor_pos, standard);
 }
 
@@ -189,8 +296,8 @@ void draw_button_area(void) {
 
 }
 
-// Update the screen for the current state
-void update_screen(void) {
+// Conditionally update the screen for the current state
+void render_game_state(void) {
     if (g_globals.render.background) {
         draw_ui_base();
         g_globals.render.background = 0;
@@ -211,6 +318,10 @@ void update_screen(void) {
         draw_puzzle_area();
         g_globals.render.puzzle = 0;
     }
+    if (g_globals.render.drawn_square) {
+        draw_drawn_square(g_globals.cursor_x, g_globals.cursor_y, g_globals.viewport_x, g_globals.viewport_y);
+        g_globals.render.drawn_square = 0;
+    }
     if (g_globals.render.palette) {
         draw_legend();
         g_globals.render.palette = 0;
@@ -227,13 +338,21 @@ void update_screen(void) {
         draw_cursor_pos_text();
         g_globals.render.cursor_pos_area = 0;
     }
-    if (g_globals.render.timer_area || g_globals.render.mistake_area || g_globals.render.progress_area || g_globals.render.information_area) {
-        // todo: break these 4 items down into their own render functions
+    if (g_globals.render.information_area) {
         draw_information_text();
-        g_globals.render.timer_area = 0;
-        g_globals.render.mistake_area = 0;
-        g_globals.render.progress_area = 0;
         g_globals.render.information_area = 0;
+    }
+    if (g_globals.render.timer_area) {
+        draw_timer();
+        g_globals.render.timer_area = 0;
+    }
+    if (g_globals.render.mistake_area) {
+        draw_mistakes();
+        g_globals.render.mistake_area = 0;
+    }
+    if (g_globals.render.progress_area) {
+        draw_progress();
+        g_globals.render.progress_area = 0;
     }
 }
 
@@ -251,4 +370,5 @@ void clear_render_components(RenderComponents *r) {
     r->mistake_area = 0;
     r->progress_area = 0;
     r->information_area = 0;
+    r->drawn_square = 0;
 }

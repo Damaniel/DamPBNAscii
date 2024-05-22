@@ -108,6 +108,12 @@
 #define KEY_INSERT          82
 #define KEY_DELETE          83
 
+// Shift state definitions
+#define STATE_RIGHT_SHIFT      0x01
+#define STATE_LEFT_SHIFT       0x02
+#define STATE_CTRL             0x04
+#define STATE_ALT              0x08
+
 // Returns the scan code of the key in the lower byte, and the shift state in the upper byte
 extern unsigned short get_input_key(void);
 

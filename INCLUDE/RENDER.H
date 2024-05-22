@@ -32,6 +32,10 @@ extern void draw_button_area(void);
 extern void draw_cursor_pos_text(void);
 extern void draw_puzzle_cursor(void);
 extern void draw_palette_cursor(void);
+extern void draw_timer(void);
+extern void draw_progress(void);
+extern void draw_mistakes(void);
 
-extern void update_screen(void);
+extern void render_screen(void);
+extern void render_game_state(void);
 extern void clear_render_components(RenderComponents *r);
