@@ -38,6 +38,22 @@ typedef enum {
 } State;
 
 typedef struct {
+  unsigned char background;
+  unsigned char puzzle_box_area;
+  unsigned char legend_area;
+  unsigned char button_area;
+  unsigned char puzzle;
+  unsigned char palette;
+  unsigned char puzzle_cursor;
+  unsigned char palette_cursor;
+  unsigned char cursor_pos_area;
+  unsigned char timer_area;
+  unsigned char mistake_area;
+  unsigned char progress_area;
+  unsigned char information_area;
+} RenderComponents;
+
+typedef struct {
     unsigned char pal_entry;
     unsigned char flags;
 } ColorSquare;
@@ -56,7 +72,9 @@ typedef struct {
 
 typedef struct {
     unsigned int cursor_x, cursor_y;
-    unsigned int palette_index;
+    unsigned int old_cursor_x, old_cursor_y;
+    unsigned int viewport_x, viewport_y;
+    unsigned int palette_index, old_palette_index;
     unsigned int total_picture_squares;
     unsigned int progress;
     unsigned int mistakes;
@@ -65,6 +83,7 @@ typedef struct {
     State current_state;
     State previous_state;
     Picture *current_picture;
+    RenderComponents render;
 } GameGlobals;
 
 #define PALETTE_ENTRIES     64

@@ -202,6 +202,8 @@ void free_picture_file(Picture *p) {
 void clear_global_game_state(GameGlobals *g) {
     g->cursor_x = 0;
     g->cursor_y = 0;
+    g->viewport_x = 0;
+    g->viewport_y = 0;
     g->palette_index = 0;
     g->current_state = STATE_NONE;
     g->previous_state = STATE_NONE;

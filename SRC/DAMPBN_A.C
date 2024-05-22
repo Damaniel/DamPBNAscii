@@ -54,7 +54,9 @@ int main(void) {
 
     g_globals.current_picture = load_picture_file("test1.pic");
 
+    clear_render_components(&(g_globals.render));
     draw_all();
+    draw_puzzle_cursor();
 
     while (!g_globals.exit_game) {
         key = get_input_key();

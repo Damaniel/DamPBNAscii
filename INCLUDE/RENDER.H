@@ -30,5 +30,8 @@ extern void draw_legend(void);
 extern void draw_information_area(void);
 extern void draw_button_area(void);
 extern void draw_cursor_pos_text(void);
+extern void draw_puzzle_cursor(void);
+extern void draw_palette_cursor(void);
 
 extern void update_screen(void);
+extern void clear_render_components(RenderComponents *r);

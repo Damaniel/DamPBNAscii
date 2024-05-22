@@ -44,7 +44,7 @@ _inline unsigned char get_shift_state(short key) {
 }
 
 void process_game_input(short key) {
-    if (get_scan_code(key) == KEY_Q) {
+    if (get_scan_code(key) == KEY_ESC) {
         change_state(STATE_EXIT);
     }
 }

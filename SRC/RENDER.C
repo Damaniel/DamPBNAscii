@@ -23,14 +23,20 @@
 // Draw the bars, the title, the background, etc
 
 void draw_all(void) {
-    draw_ui_base();
-    draw_puzzle_box_area();
-    draw_puzzle_area();
-    draw_legend_area();
-    draw_legend();
-    draw_information_text();
-    draw_cursor_pos_text();
-    draw_button_area();
+    g_globals.render.background = 1;
+    g_globals.render.puzzle_box_area = 1;
+    g_globals.render.legend_area = 1;
+    g_globals.render.button_area = 1;
+    g_globals.render.puzzle = 1;
+    g_globals.render.palette = 1;
+    g_globals.render.puzzle_cursor = 1;
+    g_globals.render.palette_cursor = 1;
+    g_globals.render.cursor_pos_area = 1;
+    g_globals.render.timer_area = 1;
+    g_globals.render.mistake_area = 1;
+    g_globals.render.progress_area = 1;
+    g_globals.render.information_area = 1;
+    update_screen();
 }
 
 void draw_ui_base(void) {
@@ -64,7 +70,7 @@ void draw_puzzle_area(void) {
     fill_box_at(DRAW_AREA_X1, DRAW_AREA_Y1, DRAW_AREA_X2, DRAW_AREA_Y2, ' ', standard);
     for (j=0; j < DRAW_VISIBLE_HEIGHT; j++) {
         for (i=0; i < DRAW_VISIBLE_WIDTH; i++) {
-            cs = get_color_square(g_globals.current_picture, i + g_globals.cursor_x, j + g_globals.cursor_y);
+            cs = get_color_square(g_globals.current_picture, i + g_globals.viewport_x, j + g_globals.viewport_y);
             if (!is_transparent(cs)) {
                 if(is_filled_in(cs)) {
                     attr = make_attr(g_globals.current_picture->pal[cs->pal_entry][1], g_globals.current_picture->pal[cs->pal_entry][2]);
@@ -72,7 +78,7 @@ void draw_puzzle_area(void) {
                     char_at(DRAW_AREA_X1 + (i * 2) + 1, DRAW_AREA_Y1 + j, g_globals.current_picture->pal[cs->pal_entry][0], attr);
                 }
                 else {
-                    cur_char = get_picture_color_at(g_globals.current_picture, i + g_globals.cursor_x, j + g_globals.cursor_y);
+                    cur_char = get_picture_color_at(g_globals.current_picture, i + g_globals.viewport_x, j + g_globals.viewport_y);
                     char_at(DRAW_AREA_X1 + (i * 2) + 1, DRAW_AREA_Y1 + j, palette_chars[cur_char], dimmer);
                 }
             }
@@ -82,6 +88,22 @@ void draw_puzzle_area(void) {
             }
         }
     }
+}
+
+void draw_puzzle_cursor() {
+    char yellow = make_attr(COLOR_YELLOW, COLOR_BLACK);
+    char standard = make_attr(COLOR_WHITE, COLOR_BLACK);
+
+    // Redraw the underlying color at the old cursor location
+    // TODO: do the right thing for filled in squares
+    char_at(DRAW_AREA_X1 + (g_globals.old_cursor_x * 2), DRAW_AREA_Y1 + g_globals.old_cursor_y, ' ', standard);
+
+    // Draw the cursor at the new location (held in cursor_x and cursor_y)
+    char_at(DRAW_AREA_X1 + (g_globals.cursor_x * 2), DRAW_AREA_Y1 + (g_globals.cursor_y), 16, yellow);
+}
+
+void draw_palette_cursor() {
+
 }
 
 void draw_legend_area(void) {
@@ -169,5 +191,64 @@ void draw_button_area(void) {
 
 // Update the screen for the current state
 void update_screen(void) {
+    if (g_globals.render.background) {
+        draw_ui_base();
+        g_globals.render.background = 0;
+    }
+    if (g_globals.render.puzzle_box_area) {
+        draw_puzzle_box_area();
+        g_globals.render.puzzle_box_area = 0;
+    }
+    if (g_globals.render.legend_area) {
+        draw_legend_area();
+        g_globals.render.legend_area = 0;
+    }
+    if (g_globals.render.button_area) {
+        draw_button_area();
+        g_globals.render.button_area = 0;
+    }
+    if (g_globals.render.puzzle) {
+        draw_puzzle_area();
+        g_globals.render.puzzle = 0;
+    }
+    if (g_globals.render.palette) {
+        draw_legend();
+        g_globals.render.palette = 0;
+    }
+    if (g_globals.render.puzzle_cursor) {
+        draw_puzzle_cursor();
+        g_globals.render.puzzle_cursor = 0;
+    }
+    if (g_globals.render.palette_cursor) {
+        draw_palette_cursor();
+        g_globals.render.palette_cursor = 0;
+    }
+    if (g_globals.render.cursor_pos_area) {
+        draw_cursor_pos_text();
+        g_globals.render.cursor_pos_area = 0;
+    }
+    if (g_globals.render.timer_area || g_globals.render.mistake_area || g_globals.render.progress_area || g_globals.render.information_area) {
+        // todo: break these 4 items down into their own render functions
+        draw_information_text();
+        g_globals.render.timer_area = 0;
+        g_globals.render.mistake_area = 0;
+        g_globals.render.progress_area = 0;
+        g_globals.render.information_area = 0;
+    }
+}
 
+void clear_render_components(RenderComponents *r) {
+    r->background = 0;
+    r->puzzle_box_area = 0;
+    r->legend_area = 0;
+    r->button_area = 0;
+    r->cursor_pos_area = 0;
+    r->puzzle = 0;
+    r->palette = 0;
+    r->puzzle_cursor = 0;
+    r->palette_cursor = 0;
+    r->timer_area = 0;
+    r->mistake_area = 0;
+    r->progress_area = 0;
+    r->information_area = 0;
 }
