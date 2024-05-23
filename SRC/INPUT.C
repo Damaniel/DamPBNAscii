@@ -54,6 +54,10 @@ void process_title_input(short key) {
     }
 }
 
+void process_load_dialog_input(short key) {
+
+}
+
 void process_game_input(short key) {
     int proposed_cursor, proposed_viewport, offset, scroll_page = 0;
     ColorSquare *cs;
@@ -261,6 +265,10 @@ void process_input(short key) {
     switch(g_globals.current_state) {
         case STATE_TITLE:
             process_title_input(key);
+            break;
+        case STATE_LOAD_DIALOG:
+            process_load_dialog_input(key);
+            break;
         case STATE_GAME:
             process_game_input(key);
             break;

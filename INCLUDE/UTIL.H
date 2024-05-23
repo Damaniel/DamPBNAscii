@@ -33,6 +33,12 @@
 
 #define COMPRESSION_NONE   0
 #define COMPRESSION_RLE    1
+#define COLLECTION_PATHSPEC "res/pics/*"
+#define PIC_FILE_DIR "res/pics"
+#define PROGRESS_FILE_DIR "progress"
+
+extern PictureItem g_pictures[MAX_PICTURES];
+extern CollectionItem g_collections[MAX_COLLECTIONS];
 
 extern void clear_global_game_state(GameGlobals *g);
 
@@ -55,3 +61,9 @@ extern void free_picture_file(Picture *p);
 extern int get_picture_color_at(Picture *p, int x, int y);
 
 extern ColorSquare *get_color_square(Picture *p, int x, int y);
+
+extern void get_collections(void);
+extern void get_pictures(int collection_idx);
+extern void get_picture_metadata(char *basepath, char *filename, PictureItem *p);
+extern void get_progress_metadata(char *basepath, char *filename, PictureItem *p);
+

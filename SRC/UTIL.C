@@ -20,6 +20,9 @@
  */
 #include "includes.h"
 
+PictureItem g_pictures[MAX_PICTURES];
+CollectionItem g_collections[MAX_COLLECTIONS];
+
 int is_transparent(ColorSquare *c) {
     return (c->flags >> F_TRANSPARENT) & 1;
 }
@@ -218,4 +221,289 @@ void clear_global_game_state(GameGlobals *g) {
     g->timer_running = 0;
     g->start_ticks = 0;
     g->mark_enabled = 0;
+}
+
+/*=============================================================================
+ * save_progress_file
+ *============================================================================*/
+int save_progress_file(Picture *p) {
+  FILE *fp;
+  int i, j;
+  char progress_file[80];
+  ColorSquare *cs;
+
+  sprintf(progress_file, "%s/%s/%s.pro",  PROGRESS_FILE_DIR, 
+          g_globals.collection_name,
+          g_globals.picture_file_basename);
+
+  fp = fopen(progress_file, "wb");
+  if (fp == NULL)
+    return -1;
+
+  fprintf(fp, "PRAS");
+  
+  /* Write the image size */
+  fwrite(&p->w, 1, sizeof(short), fp);
+  fwrite(&p->h, 1, sizeof(short), fp);
+
+  /* Write total elapsed time */
+  fwrite(&(g_globals.elapsed_seconds), 1, sizeof(unsigned int), fp);
+
+  /* Write correct and wrong count */
+  fwrite(&g_globals.mistakes, 1, sizeof(int), fp);
+  fwrite(&g_globals.progress, 1, sizeof(int), fp);
+  
+  /* Write out flag data */
+  for (j = 0; j < p->h; j++) {
+    for(i = 0; i < p->w; i++) {
+        cs = get_color_square(p, i, j);
+        fwrite(&(cs->flags), 1, sizeof(char), fp);
+    }
+  }
+
+  fclose(fp);
+
+  return 0;
+}
+
+int load_progress_file(Picture *p) {
+
+// Get the file size of the progress file, skip if too small
+// Open the progress file
+// Check the magic bytes
+// Read and check the width and height against the image
+// Get elapsed time
+// Get mistakes
+// Get progress
+// Read in the flags
+
+
+//   FILE *fp;
+//   unsigned int e_time;
+//   int i, j, mistakes, progress, size, target_size, offset;
+//   short x, y;
+//   short width, height;
+//   char magic[2];
+//   char progress_file[128];
+
+//   sprintf(progress_file, "%s/%s/%s.pro",  PROGRESS_FILE_DIR, 
+//          g_collection_name, 
+//          g_picture_file_basename);
+
+//   fp = fopen(progress_file, "rb");
+//   if (fp == NULL) {
+//     /* No progress file.  That's fine. */
+//     return 0;
+//   }
+
+//   /* Get the file size so we can do sanity checks */
+//   size = 0;
+//   while (!feof(fp)) {
+//     fgetc(fp);
+//     size++;
+//   }
+//   size--;
+//   rewind(fp);
+
+//   /* If the file is smaller than the size of a header, return */
+//   if(size < 64) {
+//     fclose(fp);
+//     return -1;
+//   }
+
+//   /* If the first two bytes aren't PR', then return */
+//   magic[0] = fgetc(fp);
+//   magic[1] = fgetc(fp);
+//   if(magic[0] != 'P' || magic[1] != 'R') {
+//     fclose(fp);
+//     return -1;
+//   }
+
+//   /* for now, ignore the file name data*/
+//   for(i = 0; i < 12; i++) 
+//     fgetc(fp);
+
+//   /* Load the width and the height.  If they don't match the provided picture,
+//      return an error */
+//   fread(&width, 1, sizeof(short), fp);
+//   fread(&height, 1, sizeof(short), fp);
+//   if(width != p->w || height != p->h) {
+//     return -1;
+//   }
+
+//   /* Load and set elapsed time */
+//   fread(&e_time, 1, sizeof(unsigned int), fp);
+//   g_elapsed_time = e_time;
+
+//   /* Load and set mistake count */
+//   fread(&mistakes, 1, sizeof(int), fp);
+//   g_mistake_count = mistakes;
+
+//   /* Load and set progress counter */
+//   fread(&progress, 1, sizeof(int), fp);
+//   g_correct_count = progress;
+
+//   fread(&g_draw_style, 1, sizeof(char), fp);
+
+//   /* Load and discard padding */
+//   for(i = 0; i < 33; i++)
+//     fgetc(fp);
+
+//   /* Check to see if the number of remaining bytes is enough to load the
+//      buffer */
+//   size -= 64;
+//   target_size = (g_correct_count * 4) + (p->w * p->h);
+//   if(target_size != size) {
+//     fclose(fp);
+//     return -1;
+//   }
+
+//   /* Load the progress data and update the picture structure*/
+//   for(i = 0; i< g_correct_count; i++) {
+//     fread(&x, 1, sizeof(short), fp);
+//     fread(&y, 1, sizeof(short), fp);
+//     offset = y * p->w + x;
+//     p->draw_order[i].x = x;
+//     p->draw_order[i].y = y;
+//     p->pic_squares[offset].fill_value = p->pic_squares[offset].pal_entry;
+//     p->pic_squares[offset].correct = 1;
+//   }
+
+//   /* Load mistake data */
+//   fread(p->mistakes, p->w * p->h, sizeof(char), fp);
+
+//   /* Loop through and update the picture structure with the mistake data */
+//   for(j = 0; j < p->h; j++) {
+//     for(i = 0;i < p->w; i++) {
+//       offset = j * p->w + i;
+//       if(p->mistakes[offset] != 0) {
+//        p->pic_squares[offset].fill_value = p->mistakes[offset];
+//        p->pic_squares[offset].correct = 0;       
+//       }
+//     }
+//   }
+
+//   fclose(fp);
+  return 0;
+
+}
+
+// File browser
+//
+// Puzzle files are grouped into 'collections', which are just a folder containing one or more puzzle files.
+// In DamPBN (non-ASCII), the game supported up to 1000 collections with 1000 pictures each.  To keep 
+// memory usage down, this version will only support up to 100 collections with 100 pictures each.  
+// Later, I'll probably write a program that lets the user swap collections in and out (along with any
+// progress data).
+// 
+// All we really need to store is the names of the collections and the filenames (minus extension) for 
+// the current collection, plus some basic metadata.  That's roughly 1k for the collections, and a 
+// little over 2k for the filenames of the collection.
+
+/*=============================================================================
+ * get_picture_metadata
+ *============================================================================*/
+void get_picture_metadata(char *basepath, char *filename, PictureItem *p) {
+    char full_file[128];
+    FILE *fp;
+    int i;
+    char v2;
+
+    sprintf(full_file, "%s/%s.pic", basepath, filename);
+    fp = fopen(full_file, "rb");
+
+    /* Get the relevant fields from this file */
+    /* Category, dimensions, colors */
+    fgetc(fp);
+    fgetc(fp);
+    fgetc(fp);
+    fgetc(fp);
+    fread(&p->width, 1, sizeof(short), fp);
+    fread(&p->height, 1, sizeof(short), fp);
+    fread(&p->category, 1, sizeof(char), fp);
+    for(i=0;i<32;i++)
+       fgetc(fp);
+    fread(&p->colors, 1, sizeof(char), fp);
+    for(i=0;i<193;i++)
+       fgetc(fp);
+    fread(&v2, 1, sizeof(char), fp);
+    if (v2) {
+      fread(&p->total, 1, sizeof(short), fp);
+    } else {
+      p->total = p->width * p->height;
+    }
+    fclose(fp);    
+}
+
+/*=============================================================================
+ * get_progress_metadata
+ *============================================================================*/
+void get_progress_metadata(char *basepath, char *filename, PictureItem *p) {
+    // char full_file[128];
+    // FILE *fp;
+    // int i;
+
+    // sprintf(full_file, "%s/%s.pro", basepath, filename);
+    // fp = fopen(full_file, "rb");
+    // if (fp == NULL) {
+    //     p->progress = 0;
+    //     return;
+    // }
+
+    // for (i=0;i<26;i++)
+    //     fgetc(fp);
+
+    // fread(&p->progress, 1, sizeof(int), fp);
+
+    // fclose(fp);
+}
+
+void get_collections(void) {
+    struct find_t fileinfo;
+    unsigned int rc;
+    int i;
+
+    g_globals.num_collections = 0;
+
+    rc = _dos_findfirst(COLLECTION_PATHSPEC, _A_SUBDIR, &fileinfo);
+    while (rc == 0 && g_globals.num_collections < MAX_COLLECTIONS) {
+        if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0) {
+            strncpy(g_collections[g_globals.num_collections].name, fileinfo.name, 8);
+            ++g_globals.num_collections;
+        }
+        rc = _dos_findnext(&fileinfo);
+    }
+
+    printf("Number of collections = %d\n", g_globals.num_collections);
+    printf("Collection names:\n");
+    for(i=0;i<g_globals.num_collections; i++) {
+        printf("  - %s\n", g_collections[i].name);
+    }
+}
+
+void get_pictures(int collection_idx) {
+    struct find_t fileinfo;
+    char pic_pathspec[64];
+    char pic_dir[64];
+    char progress_dir[64];
+    int total_files;
+    unsigned int rc;
+    char *filename;
+
+    sprintf(pic_pathspec, "%s/%s/*.pic", PIC_FILE_DIR, g_collections[collection_idx].name);
+    sprintf(pic_dir, "%s/%s", PIC_FILE_DIR, g_collections[collection_idx].name);
+    sprintf(progress_dir, "%s/%s", PROGRESS_FILE_DIR, g_collections[collection_idx].name);
+
+    total_files = 0;
+    rc = _dos_findfirst(pic_pathspec, _A_NORMAL, &fileinfo);
+    while (rc == 0 && total_files < MAX_PICTURES) {
+        filename = strtok(fileinfo.name, ".");
+        strncpy(g_pictures[total_files].name, filename, 8);
+        get_picture_metadata(pic_dir, g_pictures[total_files].name, &g_pictures[total_files]);
+        // get_progress_metadata(progress_dir, g_pictures[total_files].name, &g_pictures[total_files]);
+        ++total_files;
+        rc = _dos_findnext(&fileinfo);
+    }
+
+    g_globals.num_pictures = total_files;
 }

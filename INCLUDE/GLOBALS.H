@@ -20,8 +20,12 @@
  */
 #pragma once
 
-#define TIMER_30HZ      0x965C
-#define TIMER_DEFAULT   0xFFFF
+#define MAX_COLLECTIONS   100
+#define MAX_PICTURES      100
+
+#define COLLECTION_PATHSPEC "res/pics/*"
+#define PIC_FILE_DIR "res/pics"
+#define PROGRESS_FILE_DIR "progress"
 
 // This file contains all struct definitions, including the GameGlobals object, which contains all of the 
 // variables specific to the (global) instance of the game.
@@ -95,7 +99,26 @@ typedef struct {
     unsigned char timer_running;
     long start_ticks;
     long elapsed_seconds;
+    unsigned short num_collections;
+    unsigned short num_pictures;
+    char collection_name[9];
+    char picture_file_basename[9];
 } GameGlobals;
+
+typedef struct {
+    char name[9];
+    char category;
+    short width;
+    short height;
+    char colors;
+    int progress;
+    int total;
+} PictureItem;
+
+typedef struct {
+    char name[9];
+    int items;
+} CollectionItem;
 
 extern void (__interrupt __far *old_isr)();
 extern volatile long g_clock_ticks;
