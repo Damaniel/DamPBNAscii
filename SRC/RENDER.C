@@ -39,8 +39,42 @@ void draw_all(void) {
     render_screen();
 }
 
+void render_title_screen(void) {
+    // In a perfect world, this would be a static array somewhere, but writing code to build
+    // it programatically is probably easier than creating a 4000 byte array by hand from a drawing...
+
+    if (g_globals.render.title) {
+        // border
+        hline_at(0, 0, 80, 177, make_attr(COLOR_CYAN, COLOR_LIGHT_CYAN));
+        hline_at(0, 24, 80, 177, make_attr(COLOR_CYAN, COLOR_LIGHT_CYAN));
+        vline_at(0, 0, 25, 177, make_attr(COLOR_CYAN, COLOR_LIGHT_CYAN));
+        vline_at(79, 0, 80, 177, make_attr(COLOR_CYAN, COLOR_LIGHT_CYAN));
+        // main background
+        fill_box_at(1, 1, 78, 23, 177, make_attr(COLOR_BLUE, COLOR_LIGHT_BLUE));
+        // shading
+        hline_at(7, 18, 68, 177, make_attr(COLOR_BLUE, COLOR_BLACK));
+        hline_at(7, 22, 68, 177, make_attr(COLOR_BLUE, COLOR_BLACK));
+        vline_at(74, 3, 16, 177, make_attr(COLOR_BLUE, COLOR_BLACK));
+        char_at(74, 21, 177, make_attr(COLOR_BLUE, COLOR_BLACK));
+        char_at(74, 22, 177, make_attr(COLOR_BLUE, COLOR_BLACK));
+        // top box
+        box_at(6, 2, 73, 17, BORDER_SINGLE, make_attr(COLOR_YELLOW, COLOR_BLACK));
+        fill_box_at(7, 3, 72, 16, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));
+        // bottom box
+        fill_box_at(6, 20, 73, 21, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));
+        // ASCII text lines
+        string_at(14, 20, "Copyright 2024 Shaun Brandt / Holy Meatgoat Software", make_attr(COLOR_CYAN, COLOR_BLACK));
+        string_at(29, 21, "Press ENTER to play!", make_attr(COLOR_WHITE, COLOR_BLACK));
+        string_at(26, 15, "---=== ASCII Edition! ===---", make_attr(COLOR_WHITE, COLOR_BLACK));
+        g_globals.render.title = 0;
+    }
+}
+
 void render_screen(void) {
     switch(g_globals.current_state) {
+        case STATE_TITLE:
+            render_title_screen();
+            break;
         case STATE_GAME:
             render_game_state();
             break;
@@ -105,6 +139,19 @@ void draw_puzzle_box_area(void) {
     char_at(STATUS_AREA_BOX_X2, STATUS_AREA_BOX_Y1, 180, standard);
 }
 
+// A function that just draws the mark squares instead of trying to redraw the entire puzzle area
+void draw_marks(void) {
+    int i, j;
+    ColorSquare *cs;
+    for (j=0; j < DRAW_VISIBLE_HEIGHT; j++) {
+        for (i=0; i< DRAW_VISIBLE_WIDTH; i++) {
+            if(!is_filled_in(get_color_square(g_globals.current_picture, i, j))) {
+                draw_drawn_square(i, j, g_globals.viewport_x, g_globals.viewport_y);
+            }
+        }
+    }
+}
+
 void draw_puzzle_area(void) {
     char standard = make_attr(COLOR_WHITE, COLOR_BLACK);
     char dimmer = make_attr(COLOR_DARK_GRAY, COLOR_BLACK);
@@ -117,28 +164,6 @@ void draw_puzzle_area(void) {
     for (j=0; j < DRAW_VISIBLE_HEIGHT; j++) {
         for (i=0; i < DRAW_VISIBLE_WIDTH; i++) {
             draw_drawn_square(i, j, g_globals.viewport_x, g_globals.viewport_y);
-            // cs = get_color_square(g_globals.current_picture, i + g_globals.viewport_x, j + g_globals.viewport_y);
-            // if (!is_transparent(cs)) {
-            //     if(is_filled_in(cs)) {
-            //         if(is_correct(cs)) {
-            //             attr = make_attr(g_globals.current_picture->pal[cs->pal_entry][1], g_globals.current_picture->pal[cs->pal_entry][2]);
-            //             char_at(DRAW_AREA_X1 + (i * 2), DRAW_AREA_Y1 + j, g_globals.current_picture->pal[cs->pal_entry][0], attr);
-            //             char_at(DRAW_AREA_X1 + (i * 2) + 1, DRAW_AREA_Y1 + j, g_globals.current_picture->pal[cs->pal_entry][0], attr);   
-            //         }
-            //         else {
-            //             char_at(DRAW_AREA_X1 + (i * 2), DRAW_AREA_Y1 + j, 'X', wrong);
-            //             char_at(DRAW_AREA_X1 + (i * 2) + 1, DRAW_AREA_Y1 + j, 'X', wrong);                        
-            //         }
-            //     }
-            //     else {
-            //         cur_char = get_picture_color_at(g_globals.current_picture, i + g_globals.viewport_x, j + g_globals.viewport_y);
-            //         char_at(DRAW_AREA_X1 + (i * 2) + 1, DRAW_AREA_Y1 + j, palette_chars[cur_char], dimmer);
-            //     }
-            // }
-            // else {
-            //         char_at(DRAW_AREA_X1 + (i * 2), DRAW_AREA_Y1 + j, '.', dimmer);
-            //         char_at(DRAW_AREA_X1 + (i * 2) + 1, DRAW_AREA_Y1 + j, '.', dimmer);                
-            // }
         }
     }
 }
@@ -358,6 +383,10 @@ void render_game_state(void) {
         draw_puzzle_area();
         g_globals.render.puzzle = 0;
     }
+    if (g_globals.render.marks) {
+        draw_marks();
+        g_globals.render.marks = 0;
+    }
     if (g_globals.render.drawn_square) {
         draw_drawn_square(g_globals.cursor_x, g_globals.cursor_y, g_globals.viewport_x, g_globals.viewport_y);
         g_globals.render.drawn_square = 0;
@@ -411,4 +440,5 @@ void clear_render_components(RenderComponents *r) {
     r->progress_area = 0;
     r->information_area = 0;
     r->drawn_square = 0;
+    r->marks = 0;
 }

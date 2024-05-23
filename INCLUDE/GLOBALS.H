@@ -41,6 +41,7 @@ typedef enum {
 } State;
 
 typedef struct {
+  unsigned char title;
   unsigned char background;
   unsigned char puzzle_box_area;
   unsigned char legend_area;
@@ -55,6 +56,7 @@ typedef struct {
   unsigned char progress_area;
   unsigned char information_area;
   unsigned char drawn_square;
+  unsigned char marks;
 } RenderComponents;
 
 typedef struct {

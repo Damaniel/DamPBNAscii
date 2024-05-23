@@ -35,6 +35,7 @@ extern void draw_palette_cursor(void);
 extern void draw_timer(void);
 extern void draw_progress(void);
 extern void draw_mistakes(void);
+extern void draw_marks(void);
 
 extern void render_screen(void);
 extern void render_game_state(void);

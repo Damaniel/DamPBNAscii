@@ -41,6 +41,9 @@ void change_state(State new_state) {
 
     // process state transition stuff here
     switch(g_globals.current_state) {
+        case STATE_TITLE:
+            g_globals.render.title = 1;
+            break;
         case STATE_GAME:
             // Todo - remove this as we add more complete code
             g_globals.current_picture = load_picture_file("test1.pic");
@@ -104,7 +107,7 @@ void game_init() {
 
     // 
     clear_global_game_state(&g_globals);
-    change_state(STATE_GAME);
+    change_state(STATE_TITLE);
 }
 
 void game_cleanup(void) {

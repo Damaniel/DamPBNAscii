@@ -43,6 +43,17 @@ _inline unsigned char get_shift_state(short key) {
     return (key >> 8);
 }
 
+void process_title_input(short key) {
+    switch (get_scan_code(key)) {
+        case KEY_ESC:
+            change_state(STATE_EXIT);
+            break;
+        case KEY_ENTER:
+            change_state(STATE_GAME);
+            break;
+    }
+}
+
 void process_game_input(short key) {
     int proposed_cursor, proposed_viewport, offset, scroll_page = 0;
     ColorSquare *cs;
@@ -53,7 +64,7 @@ void process_game_input(short key) {
             break;
         case KEY_K:
             g_globals.mark_enabled = ~(g_globals.mark_enabled);
-            g_globals.render.puzzle = 1;
+            g_globals.render.marks = 1;
             g_globals.render.puzzle_cursor = 1;
             g_globals.render.button_area = 1;
             break;
@@ -246,12 +257,10 @@ void process_game_input(short key) {
     }
 }
 
-void process_title_input(short key) {
-
-}
-
 void process_input(short key) {
     switch(g_globals.current_state) {
+        case STATE_TITLE:
+            process_title_input(key);
         case STATE_GAME:
             process_game_input(key);
             break;

@@ -69,7 +69,8 @@ typedef struct {
   char h;
 } Rect;
 
-extern char far *g_screen;
+extern char __far *g_screen;
+extern char g_line_width;
 
 //-----------------------------------------------------------------------------
 // set_bg_intensity
@@ -142,7 +143,10 @@ extern void set_text_mode(int mode);
 // 
 // Places a character/attribute pair at the specified location.
 //-----------------------------------------------------------------------------
-extern void char_at(int x, int y, char c, char attr);
+__inline void char_at(int x, int y, char c, char attr) {
+  g_screen[(y*g_line_width + x)<<1] = c;
+  g_screen[((y*g_line_width + x)<<1) + 1] = attr;
+}
 
 //-----------------------------------------------------------------------------
 // hline_at / vline_at
