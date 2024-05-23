@@ -70,7 +70,12 @@ void draw_drawn_square(int cursor_x, int cursor_y, int viewport_x, int viewport_
         }
         else {
             cur_char = get_picture_color_at(g_globals.current_picture, cursor_x  + viewport_x, cursor_y + viewport_y);
-            char_at(DRAW_AREA_X1 + (cursor_x * 2) + 1, DRAW_AREA_Y1 + cursor_y, palette_chars[cur_char], dimmer);
+            if (g_globals.mark_enabled && cs->pal_entry == g_globals.palette_index) {
+                char_at(DRAW_AREA_X1 + (cursor_x * 2) + 1, DRAW_AREA_Y1 + cursor_y, palette_chars[cur_char], standard);
+            } 
+            else {
+                char_at(DRAW_AREA_X1 + (cursor_x * 2) + 1, DRAW_AREA_Y1 + cursor_y, palette_chars[cur_char], dimmer);                
+            }
         }
     }
     else {
@@ -266,8 +271,8 @@ void draw_progress(void) {
     char standard = make_attr(COLOR_WHITE, COLOR_BLACK);
     char progress[16];
 
-    string_at(PROGRESS_VALUE_X, PROGRESS_VALUE_Y, "           ", standard);
-    sprintf(progress, "%d/%d", g_globals.progress, g_globals.current_picture->pic_squares);
+    string_at(PROGRESS_VALUE_X, PROGRESS_VALUE_Y, "             ", standard);
+    sprintf(progress, "%d / %d", g_globals.progress, g_globals.total_picture_squares);
     string_at(PROGRESS_VALUE_X, PROGRESS_VALUE_Y, progress, standard);
 }
 
@@ -290,6 +295,7 @@ void draw_cursor_pos_text(void) {
 void draw_button_area(void) {
     char standard = make_attr(COLOR_WHITE, COLOR_BLACK);
     char highlight = make_attr(COLOR_CYAN, COLOR_BLACK);
+    char enabled = make_attr(COLOR_YELLOW, COLOR_BLACK);
 
     fill_box_at(BUTTON_AREA_X1, BUTTON_AREA_Y1, BUTTON_AREA_X2, BUTTON_AREA_Y2, ' ', standard);
     // draw the lines
@@ -312,13 +318,18 @@ void draw_button_area(void) {
     // draw the text
     string_at(SAVE_TEXT_X, SAVE_TEXT_Y, "( )ave", standard);
     string_at(LOAD_TEXT_X, LOAD_TEXT_Y, "( )oad", standard);
-    string_at(MARK_TEXT_X, MARK_TEXT_Y, "Mar( )", standard);
+    if (g_globals.mark_enabled) {
+        string_at(MARK_TEXT_X, MARK_TEXT_Y, "-Mar( )-", enabled);
+    }
+    else {
+        string_at(MARK_TEXT_X, MARK_TEXT_Y, " Mar( ) ", standard);
+    }
     string_at(MAP_TEXT_X, MAP_TEXT_Y, "( )ap", standard);
     string_at(OPTS_TEXT_X, OPTS_TEXT_Y, "( )pts", standard);
     string_at(EXIT_TEXT_X, EXIT_TEXT_Y, "( )xit", standard);
     char_at(SAVE_TEXT_X + 1, SAVE_TEXT_Y, 'S', highlight);
     char_at(LOAD_TEXT_X + 1, LOAD_TEXT_Y, 'L', highlight);
-    char_at(MARK_TEXT_X + 4, MARK_TEXT_Y, 'k', highlight);
+    char_at(MARK_TEXT_X + 5, MARK_TEXT_Y, 'k', highlight);
     char_at(MAP_TEXT_X + 1, MAP_TEXT_Y, 'M', highlight);
     char_at(OPTS_TEXT_X + 1, OPTS_TEXT_Y, 'O', highlight);
     char_at(EXIT_TEXT_X + 1, EXIT_TEXT_Y, 'E', highlight);

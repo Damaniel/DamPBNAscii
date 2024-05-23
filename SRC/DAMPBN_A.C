@@ -43,7 +43,7 @@ void change_state(State new_state) {
     switch(g_globals.current_state) {
         case STATE_GAME:
             // Todo - remove this as we add more complete code
-            g_globals.current_picture = load_picture_file("test2.pic");
+            g_globals.current_picture = load_picture_file("test1.pic");
             clear_render_components(&(g_globals.render));
             draw_all();
             draw_puzzle_cursor();

@@ -170,6 +170,8 @@ Picture * load_picture_file(char *filename) {
     }
   }
 
+    g_globals.total_picture_squares = total_trans_picture_squares;
+
     fclose(fp);
     return pic;
 }
@@ -215,4 +217,5 @@ void clear_global_game_state(GameGlobals *g) {
     g->elapsed_seconds = 0;
     g->timer_running = 0;
     g->start_ticks = 0;
+    g->mark_enabled = 0;
 }

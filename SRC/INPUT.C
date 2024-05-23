@@ -44,12 +44,18 @@ _inline unsigned char get_shift_state(short key) {
 }
 
 void process_game_input(short key) {
-    int proposed_cursor, proposed_viewport, offset;
+    int proposed_cursor, proposed_viewport, offset, scroll_page = 0;
     ColorSquare *cs;
 
     switch (get_scan_code(key)) {
         case KEY_ESC:
             change_state(STATE_EXIT);
+            break;
+        case KEY_K:
+            g_globals.mark_enabled = ~(g_globals.mark_enabled);
+            g_globals.render.puzzle = 1;
+            g_globals.render.puzzle_cursor = 1;
+            g_globals.render.button_area = 1;
             break;
         case KEY_LEFT_BRACKET:
             g_globals.old_palette_index = g_globals.palette_index;
@@ -58,6 +64,10 @@ void process_game_input(short key) {
                 g_globals.palette_index = g_globals.current_picture->num_colors - 1;
             }
             g_globals.render.palette_cursor = 1;
+            if (g_globals.mark_enabled) {
+                g_globals.render.puzzle = 1;
+                g_globals.render.puzzle_cursor = 1;
+            }
             break;
         case KEY_RIGHT_BRACKET:
             g_globals.old_palette_index = g_globals.palette_index;
@@ -66,11 +76,16 @@ void process_game_input(short key) {
                 g_globals.palette_index = 0;
             }
             g_globals.render.palette_cursor = 1;
+            if (g_globals.mark_enabled) {
+                g_globals.render.puzzle = 1;
+                g_globals.render.puzzle_cursor = 1;
+            }
             break;
         case KEY_LEFT:
             if (get_shift_state(key) & STATE_RIGHT_SHIFT || get_shift_state(key) & STATE_LEFT_SHIFT) {
                 proposed_cursor = g_globals.cursor_x;
                 proposed_viewport = g_globals.viewport_x - DRAW_VISIBLE_WIDTH;
+                scroll_page = 1;
             } else {
                 proposed_cursor = g_globals.cursor_x - 1;
                 proposed_viewport = g_globals.viewport_x;
@@ -82,7 +97,7 @@ void process_game_input(short key) {
             if (proposed_viewport < 0) {
                 proposed_viewport = 0;
                 // If we were already on the left edge then move the cursor all the way over
-                if (g_globals.viewport_x == proposed_viewport) {
+                if (g_globals.viewport_x == proposed_viewport && scroll_page) {
                     proposed_cursor = 0;
                 }
             }
@@ -102,6 +117,7 @@ void process_game_input(short key) {
             if (get_shift_state(key) & STATE_RIGHT_SHIFT || get_shift_state(key) & STATE_LEFT_SHIFT) {
                 proposed_cursor = g_globals.cursor_x;
                 proposed_viewport = g_globals.viewport_x + DRAW_VISIBLE_WIDTH;
+                scroll_page = 1;
             } else {
                 proposed_cursor = g_globals.cursor_x + 1;
                 proposed_viewport = g_globals.viewport_x;
@@ -113,7 +129,7 @@ void process_game_input(short key) {
             if (proposed_viewport >= g_globals.current_picture->w - DRAW_VISIBLE_WIDTH) {
                 proposed_viewport = g_globals.current_picture->w - DRAW_VISIBLE_WIDTH;
                 // If we were already on the right edge then move the cursor all the way over
-                if (g_globals.viewport_x == proposed_viewport) {
+                if (g_globals.viewport_x == proposed_viewport && scroll_page) {
                     proposed_cursor = DRAW_VISIBLE_WIDTH - 1;
                 }
             }
@@ -133,6 +149,7 @@ void process_game_input(short key) {
             if (get_shift_state(key) & STATE_RIGHT_SHIFT || get_shift_state(key) & STATE_LEFT_SHIFT) {
                 proposed_cursor = g_globals.cursor_y;
                 proposed_viewport = g_globals.viewport_y - DRAW_VISIBLE_HEIGHT;
+                scroll_page = 1;
             } else {
                 proposed_cursor = g_globals.cursor_y - 1;
                 proposed_viewport = g_globals.viewport_y;
@@ -144,7 +161,7 @@ void process_game_input(short key) {
             if (proposed_viewport < 0) {
                 proposed_viewport = 0;
                 // If we were already on the top edge then move the cursor all the way over
-                if (g_globals.viewport_y == proposed_viewport) {
+                if (g_globals.viewport_y == proposed_viewport && scroll_page) {
                     proposed_cursor = 0;
                 }
             }
@@ -164,6 +181,7 @@ void process_game_input(short key) {
             if (get_shift_state(key) & STATE_RIGHT_SHIFT || get_shift_state(key) & STATE_LEFT_SHIFT) {
                 proposed_cursor = g_globals.cursor_y;
                 proposed_viewport = g_globals.viewport_y + DRAW_VISIBLE_HEIGHT;
+                scroll_page = 1;
             } else {
                 proposed_cursor = g_globals.cursor_y + 1;
                 proposed_viewport = g_globals.viewport_y;
@@ -175,7 +193,7 @@ void process_game_input(short key) {
             if (proposed_viewport >= g_globals.current_picture->h - DRAW_VISIBLE_HEIGHT) {
                 proposed_viewport = g_globals.current_picture->h - DRAW_VISIBLE_HEIGHT;
                 // If we were already on the bottom edge then move the cursor all the way over
-                if (g_globals.viewport_y == proposed_viewport) {
+                if (g_globals.viewport_y == proposed_viewport && scroll_page ) {
                     proposed_cursor = DRAW_VISIBLE_HEIGHT - 1;
                 }
             }
@@ -202,6 +220,9 @@ void process_game_input(short key) {
                         set_correct_flag(cs, 1);
                         ++g_globals.progress;
                         g_globals.render.progress_area = 1;
+                        if (g_globals.progress >= g_globals.total_picture_squares) {
+                            change_state(STATE_EXIT);
+                        }
                     } 
                     else {
                         set_correct_flag(cs, 0);

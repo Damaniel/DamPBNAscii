@@ -115,7 +115,7 @@
 #define SAVE_TEXT_Y         20
 #define LOAD_TEXT_X         48
 #define LOAD_TEXT_Y         22
-#define MARK_TEXT_X         58
+#define MARK_TEXT_X         57
 #define MARK_TEXT_Y         20
 #define MAP_TEXT_X          58
 #define MAP_TEXT_Y          22

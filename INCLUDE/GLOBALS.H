@@ -85,6 +85,7 @@ typedef struct {
     unsigned int mistakes;
     unsigned char update_screen;
     unsigned char exit_game;
+    unsigned char mark_enabled;
     State current_state;
     State previous_state;
     Picture *current_picture;
