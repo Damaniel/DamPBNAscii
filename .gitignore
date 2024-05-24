@@ -1,9 +1,7 @@
 *.EXE
-*.PIC
 *.exe
-*.pic
-PROGRESS/*/*.pro
-PROGRESS/*/*.PRO
-SRC/*.O
-SRC/*.o
+*.pro
+*.PRO
+*.O
+*.o
 tools/output/*.png
