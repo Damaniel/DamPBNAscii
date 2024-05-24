@@ -31,10 +31,6 @@ void __interrupt __far timer_func(void) {
     g_clock_ticks++;
 }
 
-void fix_time(void) {
-    // Take the number of ticks (presumably measured at 30 hertz) and 
-}
-
 void change_state(State new_state) {
     char filename[80];
 
@@ -72,9 +68,12 @@ void change_state(State new_state) {
             g_globals.render.load_picture_cursor = 1;
             break;
         case STATE_GAME:
-            // Todo - remove this as we add more complete code   
-            sprintf(filename, "RES/PICS/%s/%s.PIC", g_collections[g_globals.selected_collection].name, g_pictures[g_globals.selected_picture].name);
+            // Todo - remove this as we add more complete code
+            strncpy(g_globals.collection_name,  g_collections[g_globals.selected_collection].name, 8);
+            strncpy(g_globals.picture_file_basename, g_pictures[g_globals.selected_picture].name, 8);   
+            sprintf(filename, "RES/PICS/%s/%s.PIC", g_globals.collection_name, g_globals.picture_file_basename);
             g_globals.current_picture = load_picture_file(filename);
+            load_progress_file(g_globals.current_picture);
             clear_render_components(&(g_globals.render));
             draw_all();
             draw_puzzle_cursor();
@@ -97,6 +96,9 @@ void pause_game_timer(void) {
 
 void process_timing(void) {
     long elapsed_ticks = g_clock_ticks - g_globals.start_ticks;
+    long elapsed_save_ticks = g_clock_ticks - g_globals.save_message_start_ticks;
+    long elapsed_load_ticks = g_clock_ticks - g_globals.load_message_start_ticks;
+    
     // The timer ticks at 18.2 ticks per second.  Every 5 seconds,
     // we wait 19 ticks instead of 18, to keep the underlying timer
     // as reasonably accurate as possible.  
@@ -111,6 +113,20 @@ void process_timing(void) {
         g_timer_overflow++;
         g_globals.start_ticks = g_clock_ticks;
         g_globals.render.timer_area = 1;
+    }
+    if(g_globals.saving_in_progress) {
+        if (elapsed_save_ticks >= SAVE_MESSAGE_DURATION) {
+            g_globals.save_message_start_ticks = 0;
+            g_globals.saving_in_progress = 0;
+            g_globals.render.save_message = 1;
+        }
+    }
+    if (g_globals.loading_in_progress) {
+        if (elapsed_load_ticks >= LOAD_MESSAGE_DURATION) {
+            g_globals.load_message_start_ticks = 0;
+            g_globals.loading_in_progress = 0;
+            g_globals.render.load_message = 1;
+        }
     }
 }
 

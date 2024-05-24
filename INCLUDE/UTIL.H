@@ -62,6 +62,9 @@ extern int get_picture_color_at(Picture *p, int x, int y);
 
 extern ColorSquare *get_color_square(Picture *p, int x, int y);
 
+extern int save_progress_file(Picture *p);
+extern int load_progress_file(Picture *p);
+
 extern void get_collections(void);
 extern void get_pictures(int collection_idx);
 extern void get_picture_metadata(char *basepath, char *filename, PictureItem *p);

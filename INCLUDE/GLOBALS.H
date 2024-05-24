@@ -27,6 +27,9 @@
 #define PIC_FILE_DIR "res/pics"
 #define PROGRESS_FILE_DIR "progress"
 
+#define SAVE_MESSAGE_DURATION   18
+#define LOAD_MESSAGE_DURATION   18
+
 static char *g_categories[] = {
     "Misc.",
     "Other",
@@ -85,6 +88,8 @@ typedef struct {
   unsigned char information_area;
   unsigned char drawn_square;
   unsigned char marks;
+  unsigned char save_message;
+  unsigned char load_message;
 } RenderComponents;
 
 typedef struct {
@@ -136,6 +141,10 @@ typedef struct {
     char selected_picture;
     char old_selected_collection;
     char old_selected_picture;
+    char saving_in_progress;
+    char loading_in_progress;
+    long save_message_start_ticks;
+    long load_message_start_ticks;
 } GameGlobals;
 
 typedef struct {

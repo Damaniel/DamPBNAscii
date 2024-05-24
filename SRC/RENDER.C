@@ -598,6 +598,23 @@ void draw_button_area(void) {
 
 }
 
+void draw_save_message(void) {
+    if(g_globals.saving_in_progress) {
+        string_at(25, 23, " Saving... ", make_attr(COLOR_WHITE, COLOR_BLACK));
+    }
+    else {
+        hline_at(25, 23, 11, 196, make_attr(COLOR_WHITE, COLOR_BLACK));
+    }
+}
+
+void draw_load_message(void) {
+    if(g_globals.loading_in_progress) {
+        string_at(21, 23, " File loaded. ", make_attr(COLOR_WHITE, COLOR_BLACK));
+    }
+    else {
+        hline_at(21, 23, 15, 196, make_attr(COLOR_WHITE, COLOR_BLACK));
+    }
+}
 // Conditionally update the screen for the current state
 void render_game_state(void) {
     if (g_globals.render.background) {
@@ -659,6 +676,14 @@ void render_game_state(void) {
     if (g_globals.render.progress_area) {
         draw_progress();
         g_globals.render.progress_area = 0;
+    }
+    if (g_globals.render.save_message) {
+        draw_save_message();
+        g_globals.render.save_message = 0;
+    }
+    if (g_globals.render.load_message) {
+        draw_load_message();
+        g_globals.render.load_message = 0;
     }
 }
 

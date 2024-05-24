@@ -229,6 +229,10 @@ void clear_global_game_state(GameGlobals *g) {
     g->selected_picture = 0;
     g->old_selected_collection = 0;
     g->old_selected_picture = 0;
+    g->saving_in_progress = 0;
+    g->loading_in_progress = 0;
+    g->save_message_start_ticks = 0;
+    g->load_message_start_ticks = 0;
 }
 
 /*=============================================================================
@@ -248,19 +252,21 @@ int save_progress_file(Picture *p) {
   if (fp == NULL)
     return -1;
 
-  fprintf(fp, "PRAS");
+  fputc('P', fp);
+  fputc('R', fp);
+  fputc('A', fp);
+  fputc('S', fp);
   
   /* Write the image size */
   fwrite(&p->w, 1, sizeof(short), fp);
   fwrite(&p->h, 1, sizeof(short), fp);
 
   /* Write total elapsed time */
-  fwrite(&(g_globals.elapsed_seconds), 1, sizeof(unsigned int), fp);
+  fwrite(&(g_globals.elapsed_seconds), 1, sizeof(unsigned long), fp);
 
   /* Write correct and wrong count */
   fwrite(&g_globals.mistakes, 1, sizeof(int), fp);
   fwrite(&g_globals.progress, 1, sizeof(int), fp);
-  
   /* Write out flag data */
   for (j = 0; j < p->h; j++) {
     for(i = 0; i < p->w; i++) {
@@ -312,7 +318,7 @@ int load_progress_file(Picture *p) {
     }
 
     /* Load and set elapsed time */
-    fread(&e_time, 1, sizeof(unsigned int), fp);
+    fread(&e_time, 1, sizeof(unsigned long), fp);
     g_globals.elapsed_seconds = e_time;
 
     /* Load and set mistake count */
@@ -398,11 +404,10 @@ void get_progress_metadata(char *basepath, char *filename, PictureItem *p) {
         return;
     }
 
-    for (i=0;i<16;i++)
+    for (i=0;i<14;i++)
         fgetc(fp);
 
     fread(&p->progress, 1, sizeof(int), fp);
-
     fclose(fp);
 }
 
@@ -443,7 +448,7 @@ void get_pictures(int collection_idx) {
         filename = strtok(fileinfo.name, ".");
         strncpy(g_pictures[total_files].name, filename, 8);
         get_picture_metadata(pic_dir, g_pictures[total_files].name, &g_pictures[total_files]);
-        // get_progress_metadata(progress_dir, g_pictures[total_files].name, &g_pictures[total_files]);
+        get_progress_metadata(progress_dir, g_pictures[total_files].name, &g_pictures[total_files]);
         ++total_files;
         rc = _dos_findnext(&fileinfo);
     }

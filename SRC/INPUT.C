@@ -162,7 +162,34 @@ void process_game_input(short key) {
     switch (get_scan_code(key)) {
         case KEY_ESC:
         case KEY_E:
+            save_progress_file(g_globals.current_picture);
             change_state(STATE_TITLE);
+            break;
+        case KEY_S:
+            if(!g_globals.saving_in_progress) {
+                g_globals.saving_in_progress = 1;
+                g_globals.save_message_start_ticks = g_clock_ticks;
+                g_globals.render.save_message = 1;
+                save_progress_file(g_globals.current_picture);
+            }
+            break;
+        case KEY_L:
+            if(!g_globals.loading_in_progress) {
+                load_progress_file(g_globals.current_picture);
+                g_globals.render.puzzle = 1;
+                g_globals.render.cursor_pos_area = 1;
+                g_globals.render.puzzle_cursor = 1;
+                g_globals.render.timer_area = 1;
+                g_globals.render.mistake_area = 1;
+                g_globals.render.progress_area = 1;
+                g_globals.render.information_area = 1;
+                if(g_globals.mark_enabled) {
+                    g_globals.render.marks = 1;
+                }
+                g_globals.loading_in_progress = 1;
+                g_globals.load_message_start_ticks = g_clock_ticks;
+                g_globals.render.load_message = 1;
+            }
             break;
         case KEY_K:
             g_globals.mark_enabled = ~(g_globals.mark_enabled);
