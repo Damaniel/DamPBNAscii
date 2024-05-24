@@ -55,6 +55,8 @@ void process_title_input(short key) {
 }
 
 void process_load_dialog_input(short key) {
+    char path[64];
+
     switch(get_scan_code(key)){
         case KEY_UP:
             if(g_globals.active_load_window == COLLECTION_TAB) {
@@ -145,6 +147,12 @@ void process_load_dialog_input(short key) {
             g_globals.render.load_collection_cursor = 1;
             break;
         case KEY_R:
+            sprintf(path, "%s/%s/%s.pro",  PROGRESS_FILE_DIR, g_collections[g_globals.selected_collection].name, g_pictures[g_globals.selected_picture].name);
+            if (access(path, F_OK) == 0) {
+                unlink(path);
+                g_pictures[g_globals.selected_picture].progress = 0;
+                g_globals.render.load_metadata_text = 1;
+            }
             break;
         case KEY_ESC:
             change_state(STATE_TITLE);
