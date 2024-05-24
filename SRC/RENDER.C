@@ -178,6 +178,9 @@ void render_screen(void) {
         case STATE_GAME:
             render_game_state();
             break;
+        case STATE_FINISHED:
+            render_finished_state();
+            break;
     }
 }
 
@@ -186,6 +189,54 @@ void render_title_screen(void) {
     if (g_globals.render.title) {
         memcpy(g_screen, title_screen, 4000);
         g_globals.render.title = 0;
+    }
+}
+
+void render_map() {
+    int start_x, start_y;
+    int end_x, end_y;
+    int i, j;
+    char attr;
+    ColorSquare *cs;
+
+    if (g_globals.current_picture->w < 80) {
+        start_x = (80 - g_globals.current_picture->w) >> 1;
+        end_x = start_x + g_globals.current_picture->w - 1;
+    }
+    else{
+        start_x = 0;
+        end_x = 79;
+    }
+    if (g_globals.current_picture->h < 25) {
+        start_y = (25 - g_globals.current_picture->h) >> 1;
+        end_y = start_y + g_globals.current_picture->h - 1;
+    }
+    else {
+        start_y = 0;
+        end_y = 24;
+    }
+
+    // When fits on screen
+    // start
+    clear_screen();
+    for(j = start_y; j <= end_y; j++) {
+        for(i = start_x; i <= end_x; i++) {
+            cs = get_color_square(g_globals.current_picture, g_globals.map_x + i - start_x, g_globals.map_y + j - start_y);
+            if(is_transparent(cs)) {
+                char_at(i, j, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));                
+            }
+            else {
+                attr = make_attr(g_globals.current_picture->pal[cs->pal_entry][1], g_globals.current_picture->pal[cs->pal_entry][2]);
+                char_at(i, j, g_globals.current_picture->pal[cs->pal_entry][0], attr);
+            }
+        }
+    }
+
+    if (!g_globals.map_hide_legend) {
+        hline_at(0, 0, 80, ' ', make_attr(COLOR_WHITE, COLOR_CYAN));
+        string_at(26, 0, "--= Picture is complete! ===-", make_attr(COLOR_WHITE, COLOR_CYAN));
+        hline_at(0, 24, 80, ' ', make_attr(COLOR_WHITE, COLOR_CYAN));
+        string_at(3, 24, "Press H to hide/show legend, arrows to scroll image, ENTER or ESC to exit.", make_attr(COLOR_WHITE, COLOR_CYAN));
     }
 }
 
@@ -309,7 +360,11 @@ void render_load_screen(void) {
         string_at(62, 8, colors, make_attr(COLOR_WHITE, COLOR_BLACK));
         if (g_pictures[g_globals.selected_picture].progress == 0) {
             sprintf(progress, "<None yet>");
-        } else {
+        } else if(g_pictures[g_globals.selected_picture].progress == g_pictures[g_globals.selected_picture].total)
+        {
+            sprintf(progress, "Completed!");
+        }
+        else {
             sprintf(progress, "%d/%d", g_pictures[g_globals.selected_picture].progress, g_pictures[g_globals.selected_picture].total);
         }
         string_at(62, 9, "           ", make_attr(COLOR_WHITE, COLOR_BLACK));
@@ -325,22 +380,29 @@ void draw_drawn_square(int cursor_x, int cursor_y, int viewport_x, int viewport_
     char cur_char, attr;
     ColorSquare *cs;
 
+    //printf("draw_drawn_square: cursor - (%d, %d), viewport - (%d, %d)\n", cursor_x, cursor_y, viewport_x, viewport_y);
     cs = get_color_square(g_globals.current_picture, cursor_x + viewport_x, cursor_y + viewport_y);
 
     if (!is_transparent(cs)) {
+        //printf("  - Is opaque\n");
         if(is_filled_in(cs)) {
+            //printf("  - Is filled in\n");
             if(is_correct(cs)) {
+                //printf("  - Is correct\n");
                 attr = make_attr(g_globals.current_picture->pal[cs->pal_entry][1], g_globals.current_picture->pal[cs->pal_entry][2]);
                 char_at(DRAW_AREA_X1 + (cursor_x * 2), DRAW_AREA_Y1 + cursor_y, g_globals.current_picture->pal[cs->pal_entry][0], attr);
                 char_at(DRAW_AREA_X1 + (cursor_x * 2) + 1, DRAW_AREA_Y1 + cursor_y, g_globals.current_picture->pal[cs->pal_entry][0], attr);   
             }
             else {
+                //printf("  - Is incorrect\n");
                 char_at(DRAW_AREA_X1 + (cursor_x * 2), DRAW_AREA_Y1 + cursor_y, 'X', wrong);
                 char_at(DRAW_AREA_X1 + (cursor_x * 2) + 1, DRAW_AREA_Y1 + cursor_y, 'X', wrong);                        
             }
         }
         else {
+            //printf("  - Is not filled in\n");
             cur_char = get_picture_color_at(g_globals.current_picture, cursor_x  + viewport_x, cursor_y + viewport_y);
+            //printf("  Palette entry = %d, palette index = %d\n", cs->pal_entry, g_globals.palette_index);
             if (g_globals.mark_enabled && cs->pal_entry == g_globals.palette_index) {
                 char_at(DRAW_AREA_X1 + (cursor_x * 2) + 1, DRAW_AREA_Y1 + cursor_y, palette_chars[cur_char], standard);
             } 
@@ -350,9 +412,12 @@ void draw_drawn_square(int cursor_x, int cursor_y, int viewport_x, int viewport_
         }
     }
     else {
+        //printf("  - Is transparent\n");
         char_at(DRAW_AREA_X1 + (cursor_x * 2), DRAW_AREA_Y1 + cursor_y, '.', dimmer);
         char_at(DRAW_AREA_X1 + (cursor_x * 2) + 1, DRAW_AREA_Y1 + cursor_y, '.', dimmer);                
     }
+
+    //printf("==========================================\n");
 }
 
 void draw_ui_base(void) {
@@ -382,7 +447,8 @@ void draw_marks(void) {
     ColorSquare *cs;
     for (j=0; j < DRAW_VISIBLE_HEIGHT; j++) {
         for (i=0; i< DRAW_VISIBLE_WIDTH; i++) {
-            if(!is_filled_in(get_color_square(g_globals.current_picture, i, j))) {
+            cs = get_color_square(g_globals.current_picture, i + g_globals.viewport_x, j + g_globals.viewport_y);
+            if(!is_filled_in(cs)) {
                 draw_drawn_square(i, j, g_globals.viewport_x, g_globals.viewport_y);
             }
         }
@@ -615,6 +681,14 @@ void draw_load_message(void) {
         hline_at(21, 23, 15, 196, make_attr(COLOR_WHITE, COLOR_BLACK));
     }
 }
+
+void render_finished_state(void) {
+    if (g_globals.render.map) {
+        render_map();
+        g_globals.render.map = 0;
+    }
+}
+
 // Conditionally update the screen for the current state
 void render_game_state(void) {
     if (g_globals.render.background) {

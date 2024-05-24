@@ -90,6 +90,7 @@ typedef struct {
   unsigned char marks;
   unsigned char save_message;
   unsigned char load_message;
+  unsigned char map;
 } RenderComponents;
 
 typedef struct {
@@ -145,6 +146,8 @@ typedef struct {
     char loading_in_progress;
     long save_message_start_ticks;
     long load_message_start_ticks;
+    char map_hide_legend;
+    int map_x, map_y;
 } GameGlobals;
 
 typedef struct {

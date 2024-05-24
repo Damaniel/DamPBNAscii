@@ -75,8 +75,20 @@ void change_state(State new_state) {
             g_globals.current_picture = load_picture_file(filename);
             load_progress_file(g_globals.current_picture);
             clear_render_components(&(g_globals.render));
-            draw_all();
-            draw_puzzle_cursor();
+            reset_image_state(&(g_globals));
+            if (g_pictures[g_globals.selected_picture].progress == g_pictures[g_globals.selected_picture].total) {
+                change_state(STATE_FINISHED);
+            }
+            else {
+                draw_all();
+                draw_puzzle_cursor();
+            }
+            break;
+        case STATE_FINISHED:
+            if (!g_globals.saving_in_progress) {
+                save_progress_file(g_globals.current_picture);
+            }
+            g_globals.render.map = 1;
             break;
         case STATE_EXIT:
             g_globals.exit_game = 1;

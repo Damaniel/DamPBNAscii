@@ -40,6 +40,9 @@
 extern PictureItem g_pictures[MAX_PICTURES];
 extern CollectionItem g_collections[MAX_COLLECTIONS];
 
+extern void dump_picture_file(void);
+
+extern void reset_image_state(GameGlobals *g);
 extern void clear_global_game_state(GameGlobals *g);
 
 extern void set_transparency_flag(ColorSquare *c, unsigned char flag);

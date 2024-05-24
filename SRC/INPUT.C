@@ -350,6 +350,7 @@ void process_game_input(short key) {
             if (proposed_viewport != g_globals.old_viewport_y) {
                 g_globals.render.puzzle = 1;
             }
+            //dump_picture_file();
             break;
         case KEY_SPACE:
             // If already correct, do nothing
@@ -388,8 +389,47 @@ void process_game_input(short key) {
     }
 }
 
+// y = before - 0 (0-24), after - 0 + 25
+// y = before - 25 (25-31), after 7, +25
 void process_finished_input(short key) {
-
+    switch(get_scan_code(key)) {
+        case KEY_ENTER:
+        case KEY_ESC:
+            change_state(STATE_TITLE);
+            break;
+        case KEY_UP:
+            g_globals.map_y -= 25;
+            if(g_globals.map_y < 0) {
+                g_globals.map_y = 0;
+            }
+            g_globals.render.map = 1;
+            break;
+        case KEY_DOWN:
+            g_globals.map_y += 25;
+            if(g_globals.map_y + 25 >= g_globals.current_picture->h) {
+                g_globals.map_y = (g_globals.current_picture->h - 25);
+            }
+            g_globals.render.map = 1;            
+            break;
+        case KEY_LEFT:
+            g_globals.map_x -= 80;
+            if(g_globals.map_x < 0) {
+                g_globals.map_x = 0;
+            }
+            g_globals.render.map = 1;
+            break;
+        case KEY_RIGHT:
+            g_globals.map_x += 80;
+            if(g_globals.map_x + 80 >= g_globals.current_picture->w) {
+                g_globals.map_x = (g_globals.current_picture->w - 80);
+            }
+            g_globals.render.map = 1;
+            break;
+        case KEY_H:
+            g_globals.map_hide_legend = ~(g_globals.map_hide_legend);
+            g_globals.render.map = 1;
+            break;
+    }
 }
 
 void process_input(short key) {

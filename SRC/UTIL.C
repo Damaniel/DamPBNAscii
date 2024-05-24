@@ -48,6 +48,19 @@ void set_correct_flag(ColorSquare *c, unsigned char value) {
     c->flags =(c->flags & ~(1 << F_CORRECT)) | (value << F_CORRECT);
 }
 
+void dump_picture_file(void) {
+    int i, j;
+    ColorSquare *cs;
+    printf("--------------------------------------\n");
+    for(j=0;j<g_globals.current_picture->h;j++) {
+        for(i=0;i<g_globals.current_picture->w;i++) {
+            cs = get_color_square(g_globals.current_picture, i, j);
+            printf("%c ", palette_chars[cs->pal_entry]);
+        }
+        printf("\n");
+    }
+}
+
 Picture * load_picture_file(char *filename) {
     FILE *fp;
     Picture *pic;
@@ -204,6 +217,22 @@ void free_picture_file(Picture *p) {
     }
 }
 
+void reset_image_state(GameGlobals *g) {
+    g->cursor_x = 0;
+    g->cursor_y = 0;
+    g->old_cursor_x = 0;
+    g->old_cursor_y = 0;
+    g->viewport_x = 0;
+    g->viewport_y = 0;
+    g->old_viewport_x = 0;
+    g->old_viewport_y = 0;
+    g->palette_index = 0;
+    g->mark_enabled = 0;
+    g->map_x = 0;
+    g->map_y = 0;
+    g->map_hide_legend = 0;
+}
+
 void clear_global_game_state(GameGlobals *g) {
     g->cursor_x = 0;
     g->cursor_y = 0;
@@ -233,6 +262,9 @@ void clear_global_game_state(GameGlobals *g) {
     g->loading_in_progress = 0;
     g->save_message_start_ticks = 0;
     g->load_message_start_ticks = 0;
+    g->map_x = 0;
+    g->map_y = 0;
+    g->map_hide_legend = 0;
 }
 
 /*=============================================================================
@@ -267,6 +299,7 @@ int save_progress_file(Picture *p) {
   /* Write correct and wrong count */
   fwrite(&g_globals.mistakes, 1, sizeof(int), fp);
   fwrite(&g_globals.progress, 1, sizeof(int), fp);
+
   /* Write out flag data */
   for (j = 0; j < p->h; j++) {
     for(i = 0; i < p->w; i++) {
@@ -285,7 +318,7 @@ int load_progress_file(Picture *p) {
     char progress_file[128];
     char magic[4];
     short width, height;
-    char e_time, mistakes, progress, flag;
+    char flag;
     int i, j;
     ColorSquare *cs;
 
@@ -318,16 +351,13 @@ int load_progress_file(Picture *p) {
     }
 
     /* Load and set elapsed time */
-    fread(&e_time, 1, sizeof(unsigned long), fp);
-    g_globals.elapsed_seconds = e_time;
+    fread(&(g_globals.elapsed_seconds), 1, sizeof(unsigned long), fp);
 
     /* Load and set mistake count */
-    fread(&mistakes, 1, sizeof(int), fp);
-    g_globals.mistakes = mistakes;
+    fread(&(g_globals.mistakes), 1, sizeof(int), fp);
 
     /* Load and set progress counter */
-    fread(&progress, 1, sizeof(int), fp);
-    g_globals.progress = progress;
+    fread(&(g_globals.progress), 1, sizeof(int), fp);
 
     for(j=0; j<p->h; j++) {
         for (i=0;i<p->w; i++) {
