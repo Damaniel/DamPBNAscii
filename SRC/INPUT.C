@@ -162,7 +162,9 @@ void process_game_input(short key) {
     switch (get_scan_code(key)) {
         case KEY_ESC:
         case KEY_E:
-            save_progress_file(g_globals.current_picture);
+            if (!g_globals.saving_in_progress) {
+                save_progress_file(g_globals.current_picture);
+            }
             change_state(STATE_TITLE);
             break;
         case KEY_S:
@@ -361,7 +363,7 @@ void process_game_input(short key) {
                         ++g_globals.progress;
                         g_globals.render.progress_area = 1;
                         if (g_globals.progress >= g_globals.total_picture_squares) {
-                            change_state(STATE_EXIT);
+                            change_state(STATE_FINISHED);
                         }
                     } 
                     else {
@@ -386,6 +388,10 @@ void process_game_input(short key) {
     }
 }
 
+void process_finished_input(short key) {
+
+}
+
 void process_input(short key) {
     switch(g_globals.current_state) {
         case STATE_TITLE:
@@ -396,6 +402,9 @@ void process_input(short key) {
             break;
         case STATE_GAME:
             process_game_input(key);
+            break;
+        case STATE_FINISHED:
+            process_finished_input(key);
             break;
     }
 }

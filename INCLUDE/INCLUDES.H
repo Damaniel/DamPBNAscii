@@ -29,6 +29,9 @@
 #include <conio.h>
 #include <i86.h>
 #include <string.h>
+#include <io.h>
+#include <sys/types.h>
+#include <direct.h>
 #include "globals.h"
 #include "dampbn_a.h"
 #include "util.h"

@@ -135,10 +135,37 @@ void print_mem_stats() {
     printf("Maximum allocatable chunk: %u bytes\n", _memmax());
 }
 
-void game_init() {
+// Check for and create progress directory tree if needed
+// Mainly needed because git won't commit empty directories, and the player shouldn't have to 
+// manually do this.
+void check_for_progress_directories() {
+    int result;
+    struct find_t fileinfo;
+    char progress_path[40];
+
+    // If progress directory doesn't exist, create it
+    if ( access(PROGRESS_FILE_DIR, F_OK) != 0) {
+        printf("Progress base directory doesn't exist, creating...\n");
+        mkdir(PROGRESS_FILE_DIR);
+    }
+    // For each directory in the collections folder
+    // If a directory by that name doesn't exist in the progress directory, create it
+    result = _dos_findfirst(COLLECTION_PATHSPEC, _A_SUBDIR, &fileinfo);
+    while (result == 0) {
+        if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0) {
+            sprintf(progress_path, "%s/%s", PROGRESS_FILE_DIR, fileinfo.name);
+            if(access(progress_path, F_OK) != 0) {
+                printf("Progress directory for collection %s doesn't exist, creating...\n", fileinfo.name);
+                mkdir(progress_path);
+            }
+        }
+        result = _dos_findnext(&fileinfo);
+    }
+}
+
+void game_init() {  
     // Reset the tick counter
     g_clock_ticks = 0;
-
     // Prep our pre-written timer interrupt function
     old_isr = _dos_getvect(0x1C);
     _dos_setvect(0x1C, timer_func);
@@ -149,7 +176,9 @@ void game_init() {
     clear_screen();
     hide_cursor();
 
-    // 
+    // Check for progress directories and create if needed
+    check_for_progress_directories();
+
     clear_global_game_state(&g_globals);
     change_state(STATE_TITLE);
 }
