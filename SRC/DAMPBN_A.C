@@ -36,6 +36,8 @@ void fix_time(void) {
 }
 
 void change_state(State new_state) {
+    char filename[80];
+
     g_globals.previous_state = g_globals.current_state;
     g_globals.current_state = new_state;
 
@@ -45,13 +47,34 @@ void change_state(State new_state) {
             g_globals.render.title = 1;
             break;
         case STATE_LOAD_DIALOG:
+            g_globals.selected_collection = 0;
+            g_globals.selected_picture = 0;
+            g_globals.old_selected_collection = 0;
+            g_globals.old_selected_picture = 0;
+            g_globals.top_collection = 0;
+            g_globals.top_picture = 0;
+            g_globals.old_top_collection = 0;
+            g_globals.old_top_picture = 0;
             get_collections();
-            get_pictures(0);
-            change_state(STATE_EXIT);
+            if (g_globals.num_collections > 0) {
+                get_pictures(0);
+            }
+            g_globals.active_load_window = COLLECTION_TAB;
+            g_globals.selected_collection = 0;
+            g_globals.selected_picture = 0;
+            g_globals.render.load_background = 1;
+            g_globals.render.load_collections = 1;
+            g_globals.render.load_pictures = 1;
+            g_globals.render.load_collections_list = 1;
+            g_globals.render.load_pictures_list = 1;
+            g_globals.render.load_collection_cursor = 1;
+            g_globals.render.load_metadata_text = 1;
+            g_globals.render.load_picture_cursor = 1;
             break;
         case STATE_GAME:
-            // Todo - remove this as we add more complete code
-            g_globals.current_picture = load_picture_file("test1.pic");
+            // Todo - remove this as we add more complete code   
+            sprintf(filename, "RES/PICS/%s/%s.PIC", g_collections[g_globals.selected_collection].name, g_pictures[g_globals.selected_picture].name);
+            g_globals.current_picture = load_picture_file(filename);
             clear_render_components(&(g_globals.render));
             draw_all();
             draw_puzzle_cursor();
@@ -112,7 +135,7 @@ void game_init() {
 
     // 
     clear_global_game_state(&g_globals);
-    change_state(STATE_LOAD_DIALOG);
+    change_state(STATE_TITLE);
 }
 
 void game_cleanup(void) {

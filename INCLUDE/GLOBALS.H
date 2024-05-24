@@ -27,6 +27,16 @@
 #define PIC_FILE_DIR "res/pics"
 #define PROGRESS_FILE_DIR "progress"
 
+static char *g_categories[] = {
+    "Misc.",
+    "Other",
+    "Landscape",
+    "Animals",
+    "Fantasy",
+    "Abstract",
+    "Pattern"
+};
+
 // This file contains all struct definitions, including the GameGlobals object, which contains all of the 
 // variables specific to the (global) instance of the game.
 
@@ -44,8 +54,22 @@ typedef enum {
   STATE_EXIT
 } State;
 
+
+typedef enum {
+  COLLECTION_TAB,
+  PICTURE_TAB
+} LoadTab;
+
 typedef struct {
   unsigned char title;
+  unsigned char load_background;
+  unsigned char load_collections;
+  unsigned char load_pictures;
+  unsigned char load_collections_list;
+  unsigned char load_pictures_list;
+  unsigned char load_metadata_text;
+  unsigned char load_collection_cursor;
+  unsigned char load_picture_cursor;
   unsigned char background;
   unsigned char puzzle_box_area;
   unsigned char legend_area;
@@ -103,6 +127,15 @@ typedef struct {
     unsigned short num_pictures;
     char collection_name[9];
     char picture_file_basename[9];
+    LoadTab active_load_window;
+    char top_collection;    // The item at the top of the collection list
+    char top_picture;       // The item at the top of the picture list
+    char old_top_collection;
+    char old_top_picture;
+    char selected_collection;
+    char selected_picture;
+    char old_selected_collection;
+    char old_selected_picture;
 } GameGlobals;
 
 typedef struct {

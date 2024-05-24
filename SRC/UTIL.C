@@ -221,6 +221,14 @@ void clear_global_game_state(GameGlobals *g) {
     g->timer_running = 0;
     g->start_ticks = 0;
     g->mark_enabled = 0;
+    g->top_collection = 0;
+    g->top_picture = 0;
+    g->old_top_collection = 0;
+    g->old_top_picture = 0;
+    g->selected_collection = 0;
+    g->selected_picture = 0;
+    g->old_selected_collection = 0;
+    g->old_selected_picture = 0;
 }
 
 /*=============================================================================
@@ -267,124 +275,64 @@ int save_progress_file(Picture *p) {
 }
 
 int load_progress_file(Picture *p) {
+    FILE *fp;
+    char progress_file[128];
+    char magic[4];
+    short width, height;
+    char e_time, mistakes, progress, flag;
+    int i, j;
+    ColorSquare *cs;
 
-// Get the file size of the progress file, skip if too small
-// Open the progress file
-// Check the magic bytes
-// Read and check the width and height against the image
-// Get elapsed time
-// Get mistakes
-// Get progress
-// Read in the flags
+    sprintf(progress_file, "%s/%s/%s.pro",  PROGRESS_FILE_DIR, 
+            g_globals.collection_name, 
+            g_globals.picture_file_basename);
 
+     fp = fopen(progress_file, "rb");
+     if (fp == NULL) {
+       /* No progress file.  That's fine. */
+       return 0;
+     }
 
-//   FILE *fp;
-//   unsigned int e_time;
-//   int i, j, mistakes, progress, size, target_size, offset;
-//   short x, y;
-//   short width, height;
-//   char magic[2];
-//   char progress_file[128];
+    /* If the first four bytes aren't PRAS', then return */
+    magic[0] = fgetc(fp);
+    magic[1] = fgetc(fp);
+    magic[2] = fgetc(fp);
+    magic[3] = fgetc(fp);
+    if(magic[0] != 'P' || magic[1] != 'R' || magic[2] != 'A' || magic[3] != 'S') {
+        fclose(fp);
+        return -1;
+    }
 
-//   sprintf(progress_file, "%s/%s/%s.pro",  PROGRESS_FILE_DIR, 
-//          g_collection_name, 
-//          g_picture_file_basename);
+    /* Load the width and the height.  If they don't match the provided picture,
+         return an error */
+    fread(&width, 1, sizeof(short), fp);
+    fread(&height, 1, sizeof(short), fp);
+    if(width != p->w || height != p->h) {
+        return -1;
+    }
 
-//   fp = fopen(progress_file, "rb");
-//   if (fp == NULL) {
-//     /* No progress file.  That's fine. */
-//     return 0;
-//   }
+    /* Load and set elapsed time */
+    fread(&e_time, 1, sizeof(unsigned int), fp);
+    g_globals.elapsed_seconds = e_time;
 
-//   /* Get the file size so we can do sanity checks */
-//   size = 0;
-//   while (!feof(fp)) {
-//     fgetc(fp);
-//     size++;
-//   }
-//   size--;
-//   rewind(fp);
+    /* Load and set mistake count */
+    fread(&mistakes, 1, sizeof(int), fp);
+    g_globals.mistakes = mistakes;
 
-//   /* If the file is smaller than the size of a header, return */
-//   if(size < 64) {
-//     fclose(fp);
-//     return -1;
-//   }
+    /* Load and set progress counter */
+    fread(&progress, 1, sizeof(int), fp);
+    g_globals.progress = progress;
 
-//   /* If the first two bytes aren't PR', then return */
-//   magic[0] = fgetc(fp);
-//   magic[1] = fgetc(fp);
-//   if(magic[0] != 'P' || magic[1] != 'R') {
-//     fclose(fp);
-//     return -1;
-//   }
+    for(j=0; j<p->h; j++) {
+        for (i=0;i<p->w; i++) {
+            fread(&flag, 1, sizeof(char), fp);
+            cs = get_color_square(p, i, j);
+            cs->flags = flag;
+        }
+    }
 
-//   /* for now, ignore the file name data*/
-//   for(i = 0; i < 12; i++) 
-//     fgetc(fp);
-
-//   /* Load the width and the height.  If they don't match the provided picture,
-//      return an error */
-//   fread(&width, 1, sizeof(short), fp);
-//   fread(&height, 1, sizeof(short), fp);
-//   if(width != p->w || height != p->h) {
-//     return -1;
-//   }
-
-//   /* Load and set elapsed time */
-//   fread(&e_time, 1, sizeof(unsigned int), fp);
-//   g_elapsed_time = e_time;
-
-//   /* Load and set mistake count */
-//   fread(&mistakes, 1, sizeof(int), fp);
-//   g_mistake_count = mistakes;
-
-//   /* Load and set progress counter */
-//   fread(&progress, 1, sizeof(int), fp);
-//   g_correct_count = progress;
-
-//   fread(&g_draw_style, 1, sizeof(char), fp);
-
-//   /* Load and discard padding */
-//   for(i = 0; i < 33; i++)
-//     fgetc(fp);
-
-//   /* Check to see if the number of remaining bytes is enough to load the
-//      buffer */
-//   size -= 64;
-//   target_size = (g_correct_count * 4) + (p->w * p->h);
-//   if(target_size != size) {
-//     fclose(fp);
-//     return -1;
-//   }
-
-//   /* Load the progress data and update the picture structure*/
-//   for(i = 0; i< g_correct_count; i++) {
-//     fread(&x, 1, sizeof(short), fp);
-//     fread(&y, 1, sizeof(short), fp);
-//     offset = y * p->w + x;
-//     p->draw_order[i].x = x;
-//     p->draw_order[i].y = y;
-//     p->pic_squares[offset].fill_value = p->pic_squares[offset].pal_entry;
-//     p->pic_squares[offset].correct = 1;
-//   }
-
-//   /* Load mistake data */
-//   fread(p->mistakes, p->w * p->h, sizeof(char), fp);
-
-//   /* Loop through and update the picture structure with the mistake data */
-//   for(j = 0; j < p->h; j++) {
-//     for(i = 0;i < p->w; i++) {
-//       offset = j * p->w + i;
-//       if(p->mistakes[offset] != 0) {
-//        p->pic_squares[offset].fill_value = p->mistakes[offset];
-//        p->pic_squares[offset].correct = 0;       
-//       }
-//     }
-//   }
-
-//   fclose(fp);
-  return 0;
+    fclose(fp);
+    return 0;
 
 }
 
@@ -439,23 +387,23 @@ void get_picture_metadata(char *basepath, char *filename, PictureItem *p) {
  * get_progress_metadata
  *============================================================================*/
 void get_progress_metadata(char *basepath, char *filename, PictureItem *p) {
-    // char full_file[128];
-    // FILE *fp;
-    // int i;
+    char full_file[128];
+    FILE *fp;
+    int i;
 
-    // sprintf(full_file, "%s/%s.pro", basepath, filename);
-    // fp = fopen(full_file, "rb");
-    // if (fp == NULL) {
-    //     p->progress = 0;
-    //     return;
-    // }
+    sprintf(full_file, "%s/%s.pro", basepath, filename);
+    fp = fopen(full_file, "rb");
+    if (fp == NULL) {
+        p->progress = 0;
+        return;
+    }
 
-    // for (i=0;i<26;i++)
-    //     fgetc(fp);
+    for (i=0;i<16;i++)
+        fgetc(fp);
 
-    // fread(&p->progress, 1, sizeof(int), fp);
+    fread(&p->progress, 1, sizeof(int), fp);
 
-    // fclose(fp);
+    fclose(fp);
 }
 
 void get_collections(void) {
@@ -474,11 +422,6 @@ void get_collections(void) {
         rc = _dos_findnext(&fileinfo);
     }
 
-    printf("Number of collections = %d\n", g_globals.num_collections);
-    printf("Collection names:\n");
-    for(i=0;i<g_globals.num_collections; i++) {
-        printf("  - %s\n", g_collections[i].name);
-    }
 }
 
 void get_pictures(int collection_idx) {

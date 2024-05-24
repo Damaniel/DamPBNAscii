@@ -49,13 +49,110 @@ void process_title_input(short key) {
             change_state(STATE_EXIT);
             break;
         case KEY_ENTER:
-            change_state(STATE_GAME);
+            change_state(STATE_LOAD_DIALOG);
             break;
     }
 }
 
 void process_load_dialog_input(short key) {
-
+    switch(get_scan_code(key)){
+        case KEY_UP:
+            if(g_globals.active_load_window == COLLECTION_TAB) {
+                g_globals.old_selected_collection = g_globals.selected_collection;
+                g_globals.old_top_collection = g_globals.top_collection;
+                if (g_globals.selected_collection > 0) {
+                    if (g_globals.top_collection != 0 ) {
+                        --g_globals.top_collection;
+                    }
+                    --g_globals.selected_collection;
+                }
+                get_pictures(g_globals.selected_collection);
+                g_globals.current_picture = 0;
+                g_globals.render.load_collections_list = 1;
+                g_globals.render.load_pictures_list = 1;
+                g_globals.render.load_collection_cursor = 1;
+                g_globals.render.load_picture_cursor = 1;
+                g_globals.render.load_metadata_text = 1;
+            }
+            else {
+                g_globals.old_selected_picture = g_globals.selected_picture;
+                g_globals.old_top_picture = g_globals.top_picture;
+                if (g_globals.selected_picture > 0) {
+                    if (g_globals.top_picture != 0 ) {
+                        --g_globals.top_picture;
+                        g_globals.render.load_pictures_list = 1;
+                    }
+                    --g_globals.selected_picture;
+                }
+                g_globals.render.load_picture_cursor = 1;
+                g_globals.render.load_metadata_text = 1;
+            }
+            break;
+        case KEY_DOWN:
+            if(g_globals.active_load_window == COLLECTION_TAB) {
+                g_globals.old_selected_collection = g_globals.selected_collection;
+                g_globals.old_top_collection = g_globals.top_collection;
+                if (g_globals.selected_collection - g_globals.top_collection >= LOAD_SCREEN_MAX_LIST_ROWS - 1) {
+                    if (g_globals.selected_collection < g_globals.num_collections - 1 ) {
+                        ++g_globals.selected_collection;
+                        ++g_globals.top_collection;
+                        g_globals.render.load_collections_list = 1;
+                    }
+                }
+                else {
+                    if(g_globals.selected_collection < g_globals.num_collections - 1) {
+                        ++g_globals.selected_collection;
+                    }
+                }
+                get_pictures(g_globals.selected_collection);
+                g_globals.current_picture = 0;
+                g_globals.render.load_pictures_list = 1;
+                g_globals.render.load_collection_cursor = 1;
+                g_globals.render.load_picture_cursor = 1;
+                g_globals.render.load_metadata_text = 1;
+            }
+            else {
+                g_globals.old_selected_picture = g_globals.selected_picture;
+                g_globals.old_top_picture = g_globals.top_picture;
+                if (g_globals.selected_picture - g_globals.top_picture >= LOAD_SCREEN_MAX_LIST_ROWS - 1) {
+                    if (g_globals.selected_picture < g_globals.num_pictures - 1 ) {
+                        ++g_globals.selected_picture;
+                        ++g_globals.top_picture;
+                    }
+                }
+                else {
+                    if(g_globals.selected_picture < g_globals.num_pictures - 1) {
+                        ++g_globals.selected_picture;
+                    }
+                }
+                g_globals.render.load_pictures_list = 1;
+                g_globals.render.load_picture_cursor = 1;
+                g_globals.render.load_metadata_text = 1;
+            }
+            break;
+        case KEY_TAB:
+            if (g_globals.active_load_window == COLLECTION_TAB) {
+                g_globals.active_load_window = PICTURE_TAB;
+            } 
+            else {
+                g_globals.active_load_window = COLLECTION_TAB;
+            }
+            g_globals.render.load_pictures = 1;
+            g_globals.render.load_collections = 1;
+            g_globals.render.load_collections_list = 1;
+            g_globals.render.load_pictures_list = 1;
+            g_globals.render.load_picture_cursor = 1;
+            g_globals.render.load_collection_cursor = 1;
+            break;
+        case KEY_R:
+            break;
+        case KEY_ESC:
+            change_state(STATE_TITLE);
+            break;
+        case KEY_ENTER:
+            change_state(STATE_GAME);
+            break;
+    }
 }
 
 void process_game_input(short key) {
@@ -64,7 +161,8 @@ void process_game_input(short key) {
 
     switch (get_scan_code(key)) {
         case KEY_ESC:
-            change_state(STATE_EXIT);
+        case KEY_E:
+            change_state(STATE_TITLE);
             break;
         case KEY_K:
             g_globals.mark_enabled = ~(g_globals.mark_enabled);

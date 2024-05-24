@@ -37,6 +37,8 @@ extern void draw_progress(void);
 extern void draw_mistakes(void);
 extern void draw_marks(void);
 
+extern void render_title_screen(void);
+extern void render_load_screen(void);
 extern void render_screen(void);
 extern void render_game_state(void);
 extern void clear_render_components(RenderComponents *r);

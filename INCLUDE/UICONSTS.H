@@ -22,8 +22,15 @@
 
 #define SW_VERSION  "v0.04 (05/22/2024)"
 
+#define LOAD_SCREEN_MAX_LIST_ROWS     19
+
 #define DRAW_VISIBLE_WIDTH  16
 #define DRAW_VISIBLE_HEIGHT 16
+
+#define LOAD_COLLECTIONS_TEXT_X     5
+#define LOAD_COLLECTIONS_TEXT_Y     3
+#define LOAD_PICTURES_TEXT_X       29
+#define LOAD_PICTURES_TEXT_Y        3
 
 #define DRAW_AREA_BOX_X1     4
 #define DRAW_AREA_BOX_Y1     2

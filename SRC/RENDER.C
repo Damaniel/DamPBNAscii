@@ -167,6 +167,20 @@ void draw_all(void) {
     render_screen();
 }
 
+void render_screen(void) {
+    switch(g_globals.current_state) {
+        case STATE_TITLE:
+            render_title_screen();
+            break;
+        case STATE_LOAD_DIALOG:
+            render_load_screen();
+            break;
+        case STATE_GAME:
+            render_game_state();
+            break;
+    }
+}
+
 void render_title_screen(void) {
     // Dump the screen to video memory
     if (g_globals.render.title) {
@@ -175,14 +189,132 @@ void render_title_screen(void) {
     }
 }
 
-void render_screen(void) {
-    switch(g_globals.current_state) {
-        case STATE_TITLE:
-            render_title_screen();
-            break;
-        case STATE_GAME:
-            render_game_state();
-            break;
+void render_load_screen(void) {
+    int i, num_rows;
+    char dimensions[10], colors[8], progress[20];
+
+    if (g_globals.render.load_background) {
+        // Background
+        fill_box_at(0, 0, 79, 24, 177, make_attr(COLOR_BLUE, COLOR_LIGHT_BLUE));
+        hline_at(0, 0, 80, ' ', make_attr(COLOR_WHITE, COLOR_CYAN));
+        box_at(47, 3, 76, 11, BORDER_SINGLE, make_attr(COLOR_WHITE, COLOR_BLACK));
+        fill_box_at(48, 4, 75, 10, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));
+        box_at(47, 15, 76, 20, BORDER_SINGLE, make_attr(COLOR_WHITE, COLOR_BLACK));
+        fill_box_at(48, 16, 75, 19, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));
+        // Shading
+        vline_at(21, 3, 21, 177, make_attr(COLOR_BLUE, COLOR_BLACK));
+        vline_at(44, 3, 21, 177, make_attr(COLOR_BLUE, COLOR_BLACK));
+        vline_at(77, 4, 9, 177, make_attr(COLOR_BLUE, COLOR_BLACK));
+        vline_at(77, 16, 6, 177, make_attr(COLOR_BLUE, COLOR_BLACK));
+        hline_at(3, 23, 19, 177, make_attr(COLOR_BLUE, COLOR_BLACK));
+        hline_at(26, 23, 19, 177, make_attr(COLOR_BLUE, COLOR_BLACK));
+        hline_at(48, 12, 30, 177, make_attr(COLOR_BLUE, COLOR_BLACK));
+        hline_at(48, 21, 30, 177, make_attr(COLOR_BLUE, COLOR_BLACK));   
+        // Text     
+        string_at(29, 0, "--- Load Picture ---", make_attr(COLOR_WHITE, COLOR_CYAN));
+        string_at(53, 3, " Picture Details ", make_attr(COLOR_WHITE, COLOR_BLACK));
+        string_at(57, 15, " Controls ", make_attr(COLOR_WHITE, COLOR_BLACK));
+        string_at(49, 5, "Name:", make_attr(COLOR_CYAN, COLOR_BLACK));
+        string_at(49, 6, "Category:", make_attr(COLOR_CYAN, COLOR_BLACK));
+        string_at(49, 7, "Size:", make_attr(COLOR_CYAN, COLOR_BLACK));
+        string_at(49, 8, "Colors:", make_attr(COLOR_CYAN, COLOR_BLACK));
+        string_at(49, 9, "Progress:", make_attr(COLOR_CYAN, COLOR_BLACK));
+        string_at(49, 16, "Tab", make_attr(COLOR_CYAN, COLOR_BLACK));
+        string_at(49, 17, "Up", make_attr(COLOR_CYAN, COLOR_BLACK));
+        string_at(54, 17, "Down", make_attr(COLOR_CYAN, COLOR_BLACK));
+        string_at(49, 18, "Enter", make_attr(COLOR_CYAN, COLOR_BLACK));
+        char_at(49, 19, 'R', make_attr(COLOR_CYAN, COLOR_BLACK));
+        char_at(52, 17, '/', make_attr(COLOR_WHITE, COLOR_BLACK));
+        string_at(53, 16, "- Move between windows", make_attr(COLOR_WHITE, COLOR_BLACK));
+        string_at(59, 17, "- Highlight item", make_attr(COLOR_WHITE, COLOR_BLACK));
+        string_at(54, 18, "- Play puzzle", make_attr(COLOR_WHITE, COLOR_BLACK));
+        string_at(51, 19, "- Reset Progress", make_attr(COLOR_WHITE, COLOR_BLACK));
+
+        g_globals.render.load_background = 0;
+    }
+    if (g_globals.render.load_collections) {
+        // The box
+        fill_box_at(3, 3, 19, 21, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));
+        if (g_globals.active_load_window == COLLECTION_TAB) {
+            box_at(2, 2, 20, 22, BORDER_DOUBLE, make_attr(COLOR_YELLOW, COLOR_BLACK));
+            string_at(5, 2, " Collections ", make_attr(COLOR_YELLOW, COLOR_BLACK));
+        }
+        else {
+            box_at(2, 2, 20, 22, BORDER_SINGLE, make_attr(COLOR_WHITE, COLOR_BLACK));
+            string_at(5, 2, " Collections ", make_attr(COLOR_WHITE, COLOR_BLACK));
+        }
+        g_globals.render.load_collections = 0;
+    }
+    if (g_globals.render.load_collections_list) {
+        // The collections
+        // 20 collections, top is 14
+        // num rows = 19
+        // if 14+19 > 20
+        // num rows = num_collections - top_collection + 1;
+        fill_box_at(6, 3, 13, 21, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));
+        num_rows = LOAD_SCREEN_MAX_LIST_ROWS;
+        if (g_globals.top_collection + num_rows >= g_globals.num_collections) {
+            num_rows = g_globals.num_collections - g_globals.top_collection;
+        }
+        for (i=0;i<num_rows;i++) {
+            string_at(LOAD_COLLECTIONS_TEXT_X, LOAD_COLLECTIONS_TEXT_Y + i, g_collections[g_globals.top_collection + i].name, make_attr(COLOR_WHITE, COLOR_BLACK));
+        }
+        g_globals.render.load_collections_list = 0;
+    }
+    if (g_globals.render.load_pictures) {
+        fill_box_at(26, 3, 42, 21, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));
+        if (g_globals.active_load_window == PICTURE_TAB) {
+            box_at(25, 2, 43, 22, BORDER_DOUBLE, make_attr(COLOR_YELLOW, COLOR_BLACK));
+            string_at(30, 2, " Pictures ", make_attr(COLOR_YELLOW, COLOR_BLACK));
+        }
+        else {
+            box_at(25, 2, 43, 22, BORDER_SINGLE, make_attr(COLOR_WHITE, COLOR_BLACK));
+            string_at(30, 2, " Pictures ", make_attr(COLOR_WHITE, COLOR_BLACK));
+        }
+        g_globals.render.load_pictures = 0;
+    }
+    if (g_globals.render.load_pictures_list) {
+        fill_box_at(29, 3, 36, 21, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));
+        num_rows = LOAD_SCREEN_MAX_LIST_ROWS;
+        if (g_globals.top_picture + num_rows >= g_globals.num_pictures) {
+            num_rows = g_globals.num_pictures - g_globals.top_picture;
+        }
+        for (i=0;i<num_rows;i++) {
+            string_at(LOAD_PICTURES_TEXT_X, LOAD_PICTURES_TEXT_Y + i, g_pictures[g_globals.top_picture + i].name, make_attr(COLOR_WHITE, COLOR_BLACK));
+        }
+        g_globals.render.load_pictures_list = 0;
+    }
+    if (g_globals.render.load_collection_cursor) {
+        char_at(LOAD_COLLECTIONS_TEXT_X - 2, LOAD_COLLECTIONS_TEXT_Y + g_globals.old_selected_collection - g_globals.old_top_collection, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));
+        char_at(LOAD_COLLECTIONS_TEXT_X - 2, LOAD_COLLECTIONS_TEXT_Y + g_globals.selected_collection - g_globals.top_collection, 16, make_attr(COLOR_YELLOW, COLOR_BLACK));
+        // highlight the text here at some point
+        g_globals.render.load_collection_cursor = 0;
+    }
+    if (g_globals.render.load_picture_cursor) {
+        char_at(LOAD_PICTURES_TEXT_X - 2, LOAD_PICTURES_TEXT_Y + g_globals.old_selected_picture - g_globals.old_top_picture, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));
+        char_at(LOAD_PICTURES_TEXT_X - 2, LOAD_PICTURES_TEXT_Y + g_globals.selected_picture - g_globals.top_picture, 16, make_attr(COLOR_YELLOW, COLOR_BLACK));
+        // highlight the text here at some point
+        g_globals.render.load_picture_cursor = 0;
+    }
+    if (g_globals.render.load_metadata_text) {
+        string_at(62, 5, "          ", make_attr(COLOR_WHITE, COLOR_BLACK));
+        string_at(62, 5, g_pictures[g_globals.selected_picture].name, make_attr(COLOR_WHITE, COLOR_BLACK));
+        string_at(62, 6, "          ", make_attr(COLOR_WHITE, COLOR_BLACK));
+        string_at(62, 6, g_categories[g_pictures[g_globals.selected_picture].category], make_attr(COLOR_WHITE, COLOR_BLACK));
+        sprintf(dimensions, "%d x %d", g_pictures[g_globals.selected_picture].width, g_pictures[g_globals.selected_picture].height);
+        string_at(62, 7, "          ", make_attr(COLOR_WHITE, COLOR_BLACK));
+        string_at(62, 7, dimensions, make_attr(COLOR_WHITE, COLOR_BLACK));
+        sprintf(colors, "%d", g_pictures[g_globals.selected_picture].colors);
+        string_at(62, 8, "          ", make_attr(COLOR_WHITE, COLOR_BLACK));
+        string_at(62, 8, colors, make_attr(COLOR_WHITE, COLOR_BLACK));
+        if (g_pictures[g_globals.selected_picture].progress == 0) {
+            sprintf(progress, "<None yet>");
+        } else {
+            sprintf(progress, "%d/%d", g_pictures[g_globals.selected_picture].progress, g_pictures[g_globals.selected_picture].total);
+        }
+        string_at(62, 9, "           ", make_attr(COLOR_WHITE, COLOR_BLACK));
+        string_at(62, 9, progress, make_attr(COLOR_WHITE, COLOR_BLACK));
+        g_globals.render.load_metadata_text = 0;
     }
 }
 
@@ -531,6 +663,15 @@ void render_game_state(void) {
 }
 
 void clear_render_components(RenderComponents *r) {
+    r->title = 0;
+    r->load_background = 0;
+    r->load_collection_cursor = 0;
+    r->load_picture_cursor = 0;
+    r->load_metadata_text = 0;
+    r->load_pictures = 0;
+    r->load_collections = 0;
+    r->load_pictures_list = 0;
+    r->load_collections_list = 0;
     r->background = 0;
     r->puzzle_box_area = 0;
     r->legend_area = 0;
