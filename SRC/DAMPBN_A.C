@@ -31,6 +31,21 @@ void __interrupt __far timer_func(void) {
     g_clock_ticks++;
 }
 
+void set_high_res_mode(void) {
+    g_globals.use_high_res_text_mode = 1;
+    if (g_globals.use_high_res_text_mode && g_globals.text_mode != CARD_CGA) {
+        set_text_mode(MODE_80X50);
+        hide_cursor();
+        if (g_globals.text_mode == CARD_EGA) {
+            g_globals.text_lines = 43;
+        } else {
+            g_globals.text_lines = 50;
+        }
+    }
+    else {
+        g_globals.text_lines = 25;
+    }
+}
 void change_state(State new_state) {
     char filename[80];
 
@@ -68,39 +83,39 @@ void change_state(State new_state) {
             g_globals.render.load_picture_cursor = 1;
             break;
         case STATE_GAME:
-            // Todo - remove this as we add more complete code
-            strncpy(g_globals.collection_name,  g_collections[g_globals.selected_collection].name, 8);
-            strncpy(g_globals.picture_file_basename, g_pictures[g_globals.selected_picture].name, 8);   
-            sprintf(filename, "RES/PICS/%s/%s.PIC", g_globals.collection_name, g_globals.picture_file_basename);
-            g_globals.current_picture = load_picture_file(filename);
-            load_progress_file(g_globals.current_picture);
-            clear_render_components(&(g_globals.render));
-            reset_image_state(&(g_globals));
-            if (g_pictures[g_globals.selected_picture].progress == g_pictures[g_globals.selected_picture].total) {
-                change_state(STATE_FINISHED);
+            if (g_globals.previous_state != STATE_MAP) {
+                strncpy(g_globals.collection_name,  g_collections[g_globals.selected_collection].name, 8);
+                strncpy(g_globals.picture_file_basename, g_pictures[g_globals.selected_picture].name, 8);   
+                sprintf(filename, "RES/PICS/%s/%s.PIC", g_globals.collection_name, g_globals.picture_file_basename);
+                g_globals.current_picture = load_picture_file(filename);
+                load_progress_file(g_globals.current_picture);
+                clear_render_components(&(g_globals.render));
+                reset_image_state(&(g_globals));
+                if (g_pictures[g_globals.selected_picture].progress == g_pictures[g_globals.selected_picture].total) {
+                    change_state(STATE_FINISHED);
+                }
+                else {
+                    draw_all();
+                    draw_puzzle_cursor();
+                }
+                start_game_timer();
             }
             else {
                 draw_all();
                 draw_puzzle_cursor();
+                start_game_timer();
             }
             break;
+        case STATE_MAP:
+            pause_game_timer();
+            set_high_res_mode();
+            g_globals.render.map = 1;
+            break;
         case STATE_FINISHED:
-            g_globals.use_high_res_text_mode = 1;
             if (!g_globals.saving_in_progress) {
                 save_progress_file(g_globals.current_picture);
             }
-            if (g_globals.use_high_res_text_mode && g_globals.text_mode != CARD_CGA) {
-                set_text_mode(MODE_80X50);
-                hide_cursor();
-                if (g_globals.text_mode == CARD_EGA) {
-                    g_globals.text_lines = 43;
-                } else {
-                    g_globals.text_lines = 50;
-                }
-            }
-            else {
-                g_globals.text_lines = 25;
-            }
+            set_high_res_mode();
             g_globals.render.map = 1;
             break;
         case STATE_EXIT:
@@ -111,7 +126,6 @@ void change_state(State new_state) {
 
 void start_game_timer(void) {
     g_globals.timer_running = 1;
-    g_globals.elapsed_seconds = 0;
     g_globals.start_ticks = g_clock_ticks;
 }
 
@@ -126,18 +140,20 @@ void process_timing(void) {
     
     // The timer ticks at 18.2 ticks per second.  Every 5 seconds,
     // we wait 19 ticks instead of 18, to keep the underlying timer
-    // as reasonably accurate as possible.  
-    if (elapsed_ticks >= 19 && g_timer_overflow >= 5) {
-        g_globals.elapsed_seconds++;
-        g_timer_overflow = 0;
-        g_globals.start_ticks = g_clock_ticks;
-        g_globals.render.timer_area = 1;
-    }
-    else if (elapsed_ticks >= 18) {
-        g_globals.elapsed_seconds++;
-        g_timer_overflow++;
-        g_globals.start_ticks = g_clock_ticks;
-        g_globals.render.timer_area = 1;
+    // as reasonably accurate as possible.
+    if(g_globals.timer_running) {
+        if (elapsed_ticks >= 19 && g_timer_overflow >= 5) {
+            g_globals.elapsed_seconds++;
+            g_timer_overflow = 0;
+            g_globals.start_ticks = g_clock_ticks;
+            g_globals.render.timer_area = 1;
+        }
+        else if (elapsed_ticks >= 18) {
+            g_globals.elapsed_seconds++;
+            g_timer_overflow++;
+            g_globals.start_ticks = g_clock_ticks;
+            g_globals.render.timer_area = 1;
+        }
     }
     if(g_globals.saving_in_progress) {
         if (elapsed_save_ticks >= SAVE_MESSAGE_DURATION) {
@@ -227,8 +243,6 @@ int main(void) {
     unsigned short key;
 
     game_init();
-
-    printf("%d\n", sizeof(GameGlobals));
 
     while (!g_globals.exit_game) {
         key = get_input_key();

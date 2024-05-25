@@ -21,6 +21,9 @@
 #pragma once
 #include "includes.h"
 
+extern void start_game_timer(void);
+extern void pause_game_timer(void);
+
 extern void change_state(State new_state);
 
 

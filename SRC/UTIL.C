@@ -186,7 +186,12 @@ Picture * load_picture_file(char *filename) {
     }
   }
 
-    g_globals.total_picture_squares = total_trans_picture_squares;
+    if(pic->version == 2) {
+        g_globals.total_picture_squares = total_trans_picture_squares;
+    }
+    else {
+        g_globals.total_picture_squares = pic->w * pic->h;
+    }
 
     fclose(fp);
     return pic;

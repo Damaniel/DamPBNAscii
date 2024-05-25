@@ -41,4 +41,5 @@ extern void render_title_screen(void);
 extern void render_load_screen(void);
 extern void render_screen(void);
 extern void render_game_state(void);
+extern void render_map_state(void);
 extern void clear_render_components(RenderComponents *r);

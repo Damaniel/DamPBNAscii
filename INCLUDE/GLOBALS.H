@@ -151,6 +151,7 @@ typedef struct {
     char use_high_res_text_mode;
     int text_lines;
     int text_mode;
+    char x_viewport_changed, y_viewport_changed;
 } GameGlobals;
 
 typedef struct {

@@ -178,6 +178,9 @@ void render_screen(void) {
         case STATE_GAME:
             render_game_state();
             break;
+        case STATE_MAP:
+            render_map_state();
+            break;
         case STATE_FINISHED:
             render_finished_state();
             break;
@@ -216,8 +219,6 @@ void render_map() {
         end_y = g_globals.text_lines - 1;
     }
 
-    // When fits on screen
-    // start
     clear_screen();
     for(j = start_y; j <= end_y; j++) {
         for(i = start_x; i <= end_x; i++) {
@@ -226,17 +227,28 @@ void render_map() {
                 char_at(i, j, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));                
             }
             else {
-                attr = make_attr(g_globals.current_picture->pal[cs->pal_entry][1], g_globals.current_picture->pal[cs->pal_entry][2]);
-                char_at(i, j, g_globals.current_picture->pal[cs->pal_entry][0], attr);
+                if(is_filled_in(cs)) {
+                    attr = make_attr(g_globals.current_picture->pal[cs->pal_entry][1], g_globals.current_picture->pal[cs->pal_entry][2]);
+                    char_at(i, j, g_globals.current_picture->pal[cs->pal_entry][0], attr);
+                }
+                else {
+                    char_at(i, j, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));
+                }
             }
         }
     }
 
     if (!g_globals.map_hide_legend) {
-        hline_at(0, 0, 80, ' ', make_attr(COLOR_WHITE, COLOR_CYAN));
-        string_at(26, 0, "--= Picture is complete! ===-", make_attr(COLOR_WHITE, COLOR_CYAN));
+        if(g_globals.progress >= g_globals.total_picture_squares) {
+            hline_at(0, 0, 80, ' ', make_attr(COLOR_WHITE, COLOR_CYAN));
+            string_at(26, 0, "--= Picture is complete! ===-", make_attr(COLOR_WHITE, COLOR_CYAN));
+        }
+        else {
+            hline_at(0, 0, 80, ' ', make_attr(COLOR_WHITE, COLOR_CYAN));
+            string_at(28, 0, "--= Picture progress =--", make_attr(COLOR_WHITE, COLOR_CYAN));           
+        }
         hline_at(0, g_globals.text_lines - 1, 80, ' ', make_attr(COLOR_WHITE, COLOR_CYAN));
-        string_at(3, g_globals.text_lines - 1, "Press H to hide/show legend, arrows to scroll image, ENTER or ESC to exit.", make_attr(COLOR_WHITE, COLOR_CYAN));
+        string_at(1, g_globals.text_lines - 1, "Press H to hide/show legend, arrows to scroll image, M/Enter/Esc to exit.", make_attr(COLOR_WHITE, COLOR_CYAN));
     }
 }
 
@@ -480,12 +492,19 @@ void draw_puzzle_cursor() {
     char color;
     ColorSquare *old_cs, *cs;
 
-    old_cs = get_color_square(g_globals.current_picture, g_globals.old_cursor_x + g_globals.old_viewport_x, g_globals.old_cursor_y + g_globals.old_viewport_y);
+    if (g_globals.y_viewport_changed) {
+        old_cs = get_color_square(g_globals.current_picture, g_globals.old_cursor_x + g_globals.old_viewport_x, g_globals.cursor_y + g_globals.viewport_y);
+    }
+    if (g_globals.x_viewport_changed) {
+        old_cs = get_color_square(g_globals.current_picture, g_globals.cursor_x + g_globals.viewport_x, g_globals.old_cursor_y + g_globals.old_viewport_y);
+    }
+    else {
+        old_cs = get_color_square(g_globals.current_picture, g_globals.old_cursor_x + g_globals.old_viewport_x, g_globals.old_cursor_y + g_globals.old_viewport_y);
+    }
+    printf("%d %d %d %d - %d\n", g_globals.cursor_x, g_globals.cursor_y, g_globals.viewport_x, g_globals.viewport_y, old_cs->pal_entry);
     cs = get_color_square(g_globals.current_picture, g_globals.cursor_x + g_globals.viewport_x, g_globals.cursor_y + g_globals.viewport_y);
     color = old_cs->pal_entry;
 
-    // Redraw the underlying color at the old cursor location
-    // TODO: do the right thing for filled in squares
     if (is_filled_in(old_cs)) {
         // Draw the filled in color if correct, the incorrect square if not correct
         if (is_correct(old_cs)) {
@@ -494,7 +513,7 @@ void draw_puzzle_cursor() {
         }
         else {
             char_at(DRAW_AREA_X1 + (g_globals.old_cursor_x * 2), DRAW_AREA_Y1 + g_globals.old_cursor_y, 'X', wrong);
-        }
+        }   
     }
     else {
         if (is_transparent(old_cs)) {
@@ -503,7 +522,7 @@ void draw_puzzle_cursor() {
         else {
             char_at(DRAW_AREA_X1 + (g_globals.old_cursor_x * 2), DRAW_AREA_Y1 + g_globals.old_cursor_y, ' ', dimmer);   
         }
-    }
+    }        
 
     // Draw the cursor at the new location (held in cursor_x and cursor_y)
     if(is_filled_in(cs)) {
@@ -683,6 +702,13 @@ void draw_load_message(void) {
 }
 
 void render_finished_state(void) {
+    if (g_globals.render.map) {
+        render_map();
+        g_globals.render.map = 0;
+    }
+}
+
+void render_map_state(void) {
     if (g_globals.render.map) {
         render_map();
         g_globals.render.map = 0;

@@ -163,6 +163,82 @@ void process_load_dialog_input(short key) {
     }
 }
 
+void process_map_navigation(unsigned char direction) {
+    switch (direction) {
+        case KEY_UP:
+            if(g_globals.current_picture->h <= g_globals.text_lines) {
+                g_globals.map_y = 0;
+            }
+            else {
+                g_globals.map_y -= g_globals.text_lines;
+                if(g_globals.map_y < 0) {
+                    g_globals.map_y = 0;
+                }
+            }
+            g_globals.render.map = 1;
+            break;
+        case KEY_DOWN:
+            if(g_globals.current_picture->h <= g_globals.text_lines) {
+                g_globals.map_y = 0;
+            } 
+            else {
+                g_globals.map_y += g_globals.text_lines;
+                if(g_globals.map_y + g_globals.text_lines >= g_globals.current_picture->h) {
+                    g_globals.map_y = (g_globals.current_picture->h - g_globals.text_lines);
+                }
+            }
+            g_globals.render.map = 1;            
+            break;
+        case KEY_LEFT:
+            if(g_globals.current_picture->w <= 80) {
+                g_globals.map_x = 0;
+            } 
+            else {
+                g_globals.map_x -= 80;
+                if(g_globals.map_x < 0) {
+                    g_globals.map_x = 0;
+                }
+            }    
+            g_globals.render.map = 1;
+            break;
+        case KEY_RIGHT:
+            if (g_globals.current_picture->w <= 80) {
+                g_globals.map_x = 0;
+            }
+            else {
+                g_globals.map_x += 80;
+                if(g_globals.map_x + 80 >= g_globals.current_picture->w) {
+                    g_globals.map_x = (g_globals.current_picture->w - 80);
+                }
+            }
+            g_globals.render.map = 1;
+            break;
+    }
+}
+void process_map_input(short key) {
+    switch(get_scan_code(key)) {
+        case KEY_ESC:
+        case KEY_ENTER:
+        case KEY_M:
+            if (g_globals.use_high_res_text_mode) {
+                set_text_mode(MODE_80X25);
+                hide_cursor();
+            }
+            change_state(STATE_GAME);
+            break;
+        case KEY_H:
+            g_globals.map_hide_legend = ~(g_globals.map_hide_legend);
+            g_globals.render.map = 1;
+            break;
+        case KEY_UP:
+        case KEY_DOWN:
+        case KEY_LEFT:
+        case KEY_RIGHT:
+            process_map_navigation(get_scan_code(key));
+            break;
+    }
+}
+
 void process_game_input(short key) {
     int proposed_cursor, proposed_viewport, offset, scroll_page = 0;
     ColorSquare *cs;
@@ -200,6 +276,9 @@ void process_game_input(short key) {
                 g_globals.load_message_start_ticks = g_clock_ticks;
                 g_globals.render.load_message = 1;
             }
+            break;
+        case KEY_M:
+            change_state(STATE_MAP);
             break;
         case KEY_K:
             g_globals.mark_enabled = ~(g_globals.mark_enabled);
@@ -247,14 +326,20 @@ void process_game_input(short key) {
             if (proposed_viewport < 0) {
                 proposed_viewport = 0;
                 // If we were already on the left edge then move the cursor all the way over
-                if (g_globals.viewport_x == proposed_viewport && scroll_page) {
-                    proposed_cursor = 0;
-                }
+                // if (g_globals.viewport_x == proposed_viewport && scroll_page) {
+                //     proposed_cursor = 0;
+                // }
             }
             g_globals.old_cursor_y = g_globals.cursor_y;
             g_globals.old_cursor_x = g_globals.cursor_x;
             g_globals.cursor_x = proposed_cursor;
-            g_globals.old_viewport_x = g_globals.viewport_x;
+            if (g_globals.viewport_x != proposed_viewport) {
+                g_globals.x_viewport_changed = 1;
+            }
+            else {
+                g_globals.old_viewport_x = g_globals.viewport_x;
+                g_globals.x_viewport_changed = 0;
+            }
             g_globals.viewport_x = proposed_viewport;
             g_globals.render.cursor_pos_area = 1;
             g_globals.render.puzzle_cursor = 1;
@@ -267,7 +352,7 @@ void process_game_input(short key) {
             if (get_shift_state(key) & STATE_RIGHT_SHIFT || get_shift_state(key) & STATE_LEFT_SHIFT) {
                 proposed_cursor = g_globals.cursor_x;
                 proposed_viewport = g_globals.viewport_x + DRAW_VISIBLE_WIDTH;
-                scroll_page = 1;
+
             } else {
                 proposed_cursor = g_globals.cursor_x + 1;
                 proposed_viewport = g_globals.viewport_x;
@@ -278,15 +363,22 @@ void process_game_input(short key) {
             }
             if (proposed_viewport >= g_globals.current_picture->w - DRAW_VISIBLE_WIDTH) {
                 proposed_viewport = g_globals.current_picture->w - DRAW_VISIBLE_WIDTH;
-                // If we were already on the right edge then move the cursor all the way over
-                if (g_globals.viewport_x == proposed_viewport && scroll_page) {
-                    proposed_cursor = DRAW_VISIBLE_WIDTH - 1;
-                }
+                // // If we were already on the right edge then move the cursor all the way over
+                // if (g_globals.viewport_x == proposed_viewport && scroll_page) {
+                //     proposed_cursor = DRAW_VISIBLE_WIDTH - 1;
+                // }
             }
             g_globals.old_cursor_y = g_globals.cursor_y;
             g_globals.old_cursor_x = g_globals.cursor_x;
             g_globals.cursor_x = proposed_cursor;
-            g_globals.old_viewport_x = g_globals.viewport_x;
+            // If the viewport changed, set the old_cursor to the new_cursor
+            if (g_globals.viewport_x != proposed_viewport) {
+                g_globals.x_viewport_changed = 1;
+            }
+            else {
+                g_globals.old_viewport_x = g_globals.viewport_x;
+                g_globals.x_viewport_changed = 0;
+            }
             g_globals.viewport_x = proposed_viewport;
             g_globals.render.cursor_pos_area = 1;
             g_globals.render.puzzle_cursor = 1;
@@ -311,14 +403,20 @@ void process_game_input(short key) {
             if (proposed_viewport < 0) {
                 proposed_viewport = 0;
                 // If we were already on the top edge then move the cursor all the way over
-                if (g_globals.viewport_y == proposed_viewport && scroll_page) {
-                    proposed_cursor = 0;
-                }
+                // if (g_globals.viewport_y == proposed_viewport && scroll_page) {
+                //     proposed_cursor = 0;
+                // }
             }
             g_globals.old_cursor_x = g_globals.cursor_x;
             g_globals.old_cursor_y = g_globals.cursor_y;
             g_globals.cursor_y = proposed_cursor;
-            g_globals.old_viewport_y = g_globals.viewport_y;
+            if (g_globals.viewport_y != proposed_viewport) {
+                g_globals.y_viewport_changed = 1;
+            }
+            else {
+                g_globals.old_viewport_y = g_globals.viewport_y;
+                g_globals.y_viewport_changed = 0;
+            }
             g_globals.viewport_y = proposed_viewport;
             g_globals.render.cursor_pos_area = 1;
             g_globals.render.puzzle_cursor = 1;
@@ -331,7 +429,6 @@ void process_game_input(short key) {
             if (get_shift_state(key) & STATE_RIGHT_SHIFT || get_shift_state(key) & STATE_LEFT_SHIFT) {
                 proposed_cursor = g_globals.cursor_y;
                 proposed_viewport = g_globals.viewport_y + DRAW_VISIBLE_HEIGHT;
-                scroll_page = 1;
             } else {
                 proposed_cursor = g_globals.cursor_y + 1;
                 proposed_viewport = g_globals.viewport_y;
@@ -343,14 +440,20 @@ void process_game_input(short key) {
             if (proposed_viewport >= g_globals.current_picture->h - DRAW_VISIBLE_HEIGHT) {
                 proposed_viewport = g_globals.current_picture->h - DRAW_VISIBLE_HEIGHT;
                 // If we were already on the bottom edge then move the cursor all the way over
-                if (g_globals.viewport_y == proposed_viewport && scroll_page ) {
-                    proposed_cursor = DRAW_VISIBLE_HEIGHT - 1;
-                }
+                // if (g_globals.viewport_y == proposed_viewport && scroll_page ) {
+                //     proposed_cursor = DRAW_VISIBLE_HEIGHT - 1;
+                // }
             }
             g_globals.old_cursor_x = g_globals.cursor_x;
             g_globals.old_cursor_y = g_globals.cursor_y;
             g_globals.cursor_y = proposed_cursor;
-            g_globals.old_viewport_y = g_globals.viewport_y;
+            if (g_globals.viewport_y != proposed_viewport) {
+                g_globals.y_viewport_changed = 1;
+            }
+            else {
+                g_globals.y_viewport_changed = 0;
+                g_globals.old_viewport_y = g_globals.viewport_y;
+            }
             g_globals.viewport_y = proposed_viewport;
             g_globals.render.cursor_pos_area = 1;
             g_globals.render.puzzle_cursor = 1;
@@ -410,52 +513,10 @@ void process_finished_input(short key) {
             change_state(STATE_TITLE);
             break;
         case KEY_UP:
-            if(g_globals.current_picture->h <= g_globals.text_lines) {
-                g_globals.map_y = 0;
-            }
-            else {
-                g_globals.map_y -= g_globals.text_lines;
-                if(g_globals.map_y < 0) {
-                    g_globals.map_y = 0;
-                }
-            }
-            g_globals.render.map = 1;
-            break;
         case KEY_DOWN:
-            if(g_globals.current_picture->h <= g_globals.text_lines) {
-                g_globals.map_y = 0;
-            } 
-            else {
-                g_globals.map_y += g_globals.text_lines;
-                if(g_globals.map_y + g_globals.text_lines >= g_globals.current_picture->h) {
-                    g_globals.map_y = (g_globals.current_picture->h - g_globals.text_lines);
-                }
-            }
-            g_globals.render.map = 1;            
-            break;
         case KEY_LEFT:
-            if(g_globals.current_picture->w <= 80) {
-                g_globals.map_x = 0;
-            } 
-            else {
-                g_globals.map_x -= 80;
-                if(g_globals.map_x < 0) {
-                    g_globals.map_x = 0;
-                }
-            }    
-            g_globals.render.map = 1;
-            break;
         case KEY_RIGHT:
-            if (g_globals.current_picture->w <= 80) {
-                g_globals.map_x = 0;
-            }
-            else {
-                g_globals.map_x += 80;
-                if(g_globals.map_x + 80 >= g_globals.current_picture->w) {
-                    g_globals.map_x = (g_globals.current_picture->w - 80);
-                }
-            }
-            g_globals.render.map = 1;
+            process_map_navigation(get_scan_code(key));
             break;
         case KEY_H:
             g_globals.map_hide_legend = ~(g_globals.map_hide_legend);
@@ -474,6 +535,9 @@ void process_input(short key) {
             break;
         case STATE_GAME:
             process_game_input(key);
+            break;
+        case STATE_MAP:
+            process_map_input(key);
             break;
         case STATE_FINISHED:
             process_finished_input(key);
