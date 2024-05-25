@@ -85,8 +85,21 @@ void change_state(State new_state) {
             }
             break;
         case STATE_FINISHED:
+            g_globals.use_high_res_text_mode = 1;
             if (!g_globals.saving_in_progress) {
                 save_progress_file(g_globals.current_picture);
+            }
+            if (g_globals.use_high_res_text_mode && g_globals.text_mode != CARD_CGA) {
+                set_text_mode(MODE_80X50);
+                hide_cursor();
+                if (g_globals.text_mode == CARD_EGA) {
+                    g_globals.text_lines = 43;
+                } else {
+                    g_globals.text_lines = 50;
+                }
+            }
+            else {
+                g_globals.text_lines = 25;
             }
             g_globals.render.map = 1;
             break;
@@ -192,6 +205,9 @@ void game_init() {
     check_for_progress_directories();
 
     clear_global_game_state(&g_globals);
+
+    g_globals.text_mode = detect_adapter();
+
     change_state(STATE_TITLE);
 }
 
@@ -211,6 +227,8 @@ int main(void) {
     unsigned short key;
 
     game_init();
+
+    printf("%d\n", sizeof(GameGlobals));
 
     while (!g_globals.exit_game) {
         key = get_input_key();

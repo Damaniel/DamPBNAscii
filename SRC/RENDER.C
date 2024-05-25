@@ -207,13 +207,13 @@ void render_map() {
         start_x = 0;
         end_x = 79;
     }
-    if (g_globals.current_picture->h < 25) {
-        start_y = (25 - g_globals.current_picture->h) >> 1;
+    if (g_globals.current_picture->h < g_globals.text_lines) {
+        start_y = (g_globals.text_lines - g_globals.current_picture->h) >> 1;
         end_y = start_y + g_globals.current_picture->h - 1;
     }
     else {
         start_y = 0;
-        end_y = 24;
+        end_y = g_globals.text_lines - 1;
     }
 
     // When fits on screen
@@ -235,8 +235,8 @@ void render_map() {
     if (!g_globals.map_hide_legend) {
         hline_at(0, 0, 80, ' ', make_attr(COLOR_WHITE, COLOR_CYAN));
         string_at(26, 0, "--= Picture is complete! ===-", make_attr(COLOR_WHITE, COLOR_CYAN));
-        hline_at(0, 24, 80, ' ', make_attr(COLOR_WHITE, COLOR_CYAN));
-        string_at(3, 24, "Press H to hide/show legend, arrows to scroll image, ENTER or ESC to exit.", make_attr(COLOR_WHITE, COLOR_CYAN));
+        hline_at(0, g_globals.text_lines - 1, 80, ' ', make_attr(COLOR_WHITE, COLOR_CYAN));
+        string_at(3, g_globals.text_lines - 1, "Press H to hide/show legend, arrows to scroll image, ENTER or ESC to exit.", make_attr(COLOR_WHITE, COLOR_CYAN));
     }
 }
 

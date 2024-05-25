@@ -403,33 +403,57 @@ void process_finished_input(short key) {
     switch(get_scan_code(key)) {
         case KEY_ENTER:
         case KEY_ESC:
+            if (g_globals.use_high_res_text_mode) {
+                set_text_mode(MODE_80X25);
+                hide_cursor();
+            }
             change_state(STATE_TITLE);
             break;
         case KEY_UP:
-            g_globals.map_y -= 25;
-            if(g_globals.map_y < 0) {
+            if(g_globals.current_picture->h <= g_globals.text_lines) {
                 g_globals.map_y = 0;
+            }
+            else {
+                g_globals.map_y -= g_globals.text_lines;
+                if(g_globals.map_y < 0) {
+                    g_globals.map_y = 0;
+                }
             }
             g_globals.render.map = 1;
             break;
         case KEY_DOWN:
-            g_globals.map_y += 25;
-            if(g_globals.map_y + 25 >= g_globals.current_picture->h) {
-                g_globals.map_y = (g_globals.current_picture->h - 25);
+            if(g_globals.current_picture->h <= g_globals.text_lines) {
+                g_globals.map_y = 0;
+            } 
+            else {
+                g_globals.map_y += g_globals.text_lines;
+                if(g_globals.map_y + g_globals.text_lines >= g_globals.current_picture->h) {
+                    g_globals.map_y = (g_globals.current_picture->h - g_globals.text_lines);
+                }
             }
             g_globals.render.map = 1;            
             break;
         case KEY_LEFT:
-            g_globals.map_x -= 80;
-            if(g_globals.map_x < 0) {
+            if(g_globals.current_picture->w <= 80) {
                 g_globals.map_x = 0;
-            }
+            } 
+            else {
+                g_globals.map_x -= 80;
+                if(g_globals.map_x < 0) {
+                    g_globals.map_x = 0;
+                }
+            }    
             g_globals.render.map = 1;
             break;
         case KEY_RIGHT:
-            g_globals.map_x += 80;
-            if(g_globals.map_x + 80 >= g_globals.current_picture->w) {
-                g_globals.map_x = (g_globals.current_picture->w - 80);
+            if (g_globals.current_picture->w <= 80) {
+                g_globals.map_x = 0;
+            }
+            else {
+                g_globals.map_x += 80;
+                if(g_globals.map_x + 80 >= g_globals.current_picture->w) {
+                    g_globals.map_x = (g_globals.current_picture->w - 80);
+                }
             }
             g_globals.render.map = 1;
             break;

@@ -265,6 +265,7 @@ void clear_global_game_state(GameGlobals *g) {
     g->map_x = 0;
     g->map_y = 0;
     g->map_hide_legend = 0;
+    g->use_high_res_text_mode = 0;
 }
 
 /*=============================================================================

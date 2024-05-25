@@ -148,6 +148,9 @@ typedef struct {
     long load_message_start_ticks;
     char map_hide_legend;
     int map_x, map_y;
+    char use_high_res_text_mode;
+    int text_lines;
+    int text_mode;
 } GameGlobals;
 
 typedef struct {
