@@ -246,7 +246,7 @@ void process_game_input(short key) {
     switch (get_scan_code(key)) {
         case KEY_ESC:
         case KEY_E:
-            if (!g_globals.saving_in_progress) {
+            if (g_globals.option_auto_save && !g_globals.saving_in_progress) {
                 save_progress_file(g_globals.current_picture);
             }
             change_state(STATE_TITLE);
@@ -506,7 +506,7 @@ void process_finished_input(short key) {
     switch(get_scan_code(key)) {
         case KEY_ENTER:
         case KEY_ESC:
-            if (g_globals.use_high_res_text_mode) {
+            if (g_globals.option_high_res && g_globals.use_high_res_text_mode) {
                 set_text_mode(MODE_80X25);
                 hide_cursor();
             }

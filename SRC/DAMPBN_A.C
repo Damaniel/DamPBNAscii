@@ -32,20 +32,24 @@ void __interrupt __far timer_func(void) {
 }
 
 void set_high_res_mode(void) {
-    g_globals.use_high_res_text_mode = 1;
-    if (g_globals.use_high_res_text_mode && g_globals.text_mode != CARD_CGA) {
-        set_text_mode(MODE_80X50);
-        hide_cursor();
-        if (g_globals.text_mode == CARD_EGA) {
-            g_globals.text_lines = 43;
-        } else {
-            g_globals.text_lines = 50;
+    
+    // Default lines
+    g_globals.text_lines = 25;
+
+    if(g_globals.option_high_res) {
+        g_globals.use_high_res_text_mode = 1;
+        if (g_globals.use_high_res_text_mode && g_globals.text_mode != CARD_CGA) {
+            set_text_mode(MODE_80X50);
+            hide_cursor();
+            if (g_globals.text_mode == CARD_EGA) {
+                g_globals.text_lines = 43;
+            } else {
+                g_globals.text_lines = 50;
+            }
         }
     }
-    else {
-        g_globals.text_lines = 25;
-    }
 }
+
 void change_state(State new_state) {
     char filename[80];
 
@@ -97,6 +101,11 @@ void change_state(State new_state) {
                 else {
                     draw_all();
                     draw_puzzle_cursor();
+                    if(g_globals.option_mark_default) {
+                        g_globals.mark_enabled = 1;
+                        g_globals.render.marks = 1;
+                        g_globals.render.button_area = 1;
+                    }
                 }
                 start_game_timer();
             }
@@ -205,6 +214,8 @@ void check_for_progress_directories() {
 }
 
 void game_init() {  
+    int result;
+
     // Reset the tick counter
     g_clock_ticks = 0;
     // Prep our pre-written timer interrupt function
@@ -216,13 +227,19 @@ void game_init() {
     set_bg_intensity(1);
     clear_screen();
     hide_cursor();
-
+    
     // Check for progress directories and create if needed
     check_for_progress_directories();
 
     clear_global_game_state(&g_globals);
 
     g_globals.text_mode = detect_adapter();
+
+    // Load the options file
+    result = load_options_file();
+    if (result != 0) {
+        printf("Config file not loaded, defaults set\n");
+    }
 
     change_state(STATE_TITLE);
 }

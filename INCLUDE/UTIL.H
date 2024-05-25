@@ -42,6 +42,9 @@ extern CollectionItem g_collections[MAX_COLLECTIONS];
 
 extern void dump_picture_file(void);
 
+extern int save_options_file(void);
+extern int load_options_file(void);
+
 extern void reset_image_state(GameGlobals *g);
 extern void clear_global_game_state(GameGlobals *g);
 

@@ -4,4 +4,6 @@
 *.PRO
 *.O
 *.o
+*.CFG
+*.cfg
 tools/output/*.png

@@ -164,6 +164,7 @@ void draw_all(void) {
     g_globals.render.mistake_area = 1;
     g_globals.render.progress_area = 1;
     g_globals.render.information_area = 1;
+    g_globals.render.category_area = 1;
     render_screen();
 }
 
@@ -616,6 +617,10 @@ void draw_timer(void) {
     string_at(TIME_VALUE_X, TIME_VALUE_Y, time_string, standard);
 }
 
+void draw_category_text(void) {
+    string_at(15, 20, g_categories[g_globals.current_picture->category], make_attr(COLOR_WHITE, COLOR_BLACK));
+}
+
 void draw_progress(void) {
     char standard = make_attr(COLOR_WHITE, COLOR_BLACK);
     char progress[16];
@@ -766,6 +771,10 @@ void render_game_state(void) {
     if (g_globals.render.information_area) {
         draw_information_text();
         g_globals.render.information_area = 0;
+    }
+    if (g_globals.render.category_area) {
+        draw_category_text();
+        g_globals.render.category_area = 0;
     }
     if (g_globals.render.timer_area) {
         draw_timer();

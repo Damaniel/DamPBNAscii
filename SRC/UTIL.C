@@ -273,6 +273,46 @@ void clear_global_game_state(GameGlobals *g) {
     g->use_high_res_text_mode = 0;
 }
 
+int save_options_file(void) {
+    FILE *fp;
+
+    fp = fopen(OPTIONS_FILE, "wb");
+    if (fp == NULL) {
+        return -1;
+    }
+    fputc(g_globals.option_high_res, fp);
+    fputc(g_globals.option_mark_default, fp);
+    fputc(g_globals.option_auto_save, fp);
+    fputc(g_globals.option_sound, fp);
+
+    fclose(fp);
+    return 0;
+}
+
+int load_options_file(void) {
+    FILE *fp;
+
+    // Set some sane defaults
+    g_globals.option_high_res = 1;
+    g_globals.option_mark_default = 1;
+    g_globals.option_auto_save = 0;
+    g_globals.option_sound = 0;
+
+    // Now get the actual options
+    fp = fopen(OPTIONS_FILE, "rb");
+    if (fp == NULL) {
+        return -1;
+    }
+    g_globals.option_high_res = fgetc(fp);
+    g_globals.option_mark_default = fgetc(fp);
+    g_globals.option_auto_save = fgetc(fp);
+    g_globals.option_sound = fgetc(fp);
+
+    fclose(fp);
+
+    return 0;
+}
+
 /*=============================================================================
  * save_progress_file
  *============================================================================*/
