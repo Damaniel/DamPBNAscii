@@ -337,9 +337,9 @@ void process_game_input(short key) {
                 g_globals.x_viewport_changed = 1;
             }
             else {
-                g_globals.old_viewport_x = g_globals.viewport_x;
                 g_globals.x_viewport_changed = 0;
             }
+                g_globals.old_viewport_x = g_globals.viewport_x;
             g_globals.viewport_x = proposed_viewport;
             g_globals.render.cursor_pos_area = 1;
             g_globals.render.puzzle_cursor = 1;
@@ -376,9 +376,9 @@ void process_game_input(short key) {
                 g_globals.x_viewport_changed = 1;
             }
             else {
-                g_globals.old_viewport_x = g_globals.viewport_x;
                 g_globals.x_viewport_changed = 0;
             }
+            g_globals.old_viewport_x = g_globals.viewport_x;
             g_globals.viewport_x = proposed_viewport;
             g_globals.render.cursor_pos_area = 1;
             g_globals.render.puzzle_cursor = 1;
@@ -414,9 +414,9 @@ void process_game_input(short key) {
                 g_globals.y_viewport_changed = 1;
             }
             else {
-                g_globals.old_viewport_y = g_globals.viewport_y;
                 g_globals.y_viewport_changed = 0;
             }
+            g_globals.old_viewport_y = g_globals.viewport_y;
             g_globals.viewport_y = proposed_viewport;
             g_globals.render.cursor_pos_area = 1;
             g_globals.render.puzzle_cursor = 1;
@@ -452,8 +452,8 @@ void process_game_input(short key) {
             }
             else {
                 g_globals.y_viewport_changed = 0;
-                g_globals.old_viewport_y = g_globals.viewport_y;
             }
+            g_globals.old_viewport_y = g_globals.viewport_y;
             g_globals.viewport_y = proposed_viewport;
             g_globals.render.cursor_pos_area = 1;
             g_globals.render.puzzle_cursor = 1;
