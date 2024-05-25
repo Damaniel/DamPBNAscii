@@ -118,6 +118,33 @@
 #define BUTTON_AREA_VLINE2_Y    19
 #define BUTTON_AREA_VLINE2_LEN   5
 
+#define OPTIONS_DIALOG_X1       13
+#define OPTIONS_DIALOG_Y1        7
+#define OPTIONS_DIALOG_X2       65
+#define OPTIONS_DIALOG_Y2       16
+#define OPTIONS_HEADER_X        35
+#define OPTIONS_HEADER_Y         7
+#define OPTION_TEXT_HIGH_RES_X  15
+#define OPTION_TEXT_HIGH_RES_Y   9
+#define OPTION_TEXT_MARK_X      15
+#define OPTION_TEXT_MARK_Y      10
+#define OPTION_TEXT_AUTOSAVE_X  15
+#define OPTION_TEXT_AUTOSAVE_Y  11
+#define OPTION_TEXT_SOUND_X     15
+#define OPTION_TEXT_SOUND_Y     12
+#define OPTION_HIGH_RES_X       16
+#define OPTION_HIGH_RES_Y        9
+#define OPTION_MARK_X           16
+#define OPTION_MARK_Y           10
+#define OPTION_AUTOSAVE_X       16
+#define OPTION_AUTOSAVE_Y       11
+#define OPTION_SOUND_X          16
+#define OPTION_SOUND_Y          12
+#define OPTION_SAVE_X           24
+#define OPTION_SAVE_Y           14
+#define OPTION_CANCEL_X         43
+#define OPTION_CANCEL_Y         14
+
 #define SAVE_TEXT_X         48
 #define SAVE_TEXT_Y         20
 #define LOAD_TEXT_X         48

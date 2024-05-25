@@ -182,6 +182,9 @@ void render_screen(void) {
         case STATE_MAP:
             render_map_state();
             break;
+        case STATE_OPTS:
+            render_opts_state();
+            break;
         case STATE_FINISHED:
             render_finished_state();
             break;
@@ -708,6 +711,90 @@ void draw_load_message(void) {
     }
 }
 
+void draw_options(void) {
+    // Draw the high res option
+    if(g_globals.selected_option == 0) {
+        if (g_globals.option_high_res) {
+            char_at(OPTION_TEXT_HIGH_RES_X + 1, OPTION_TEXT_HIGH_RES_Y, '*', make_attr(COLOR_BLACK, COLOR_YELLOW));
+        }
+        else {
+            char_at(OPTION_TEXT_HIGH_RES_X + 1, OPTION_TEXT_HIGH_RES_Y, 219, make_attr(COLOR_YELLOW, COLOR_CYAN));
+        }
+    }
+    else {
+        if (g_globals.option_high_res) {
+            char_at(OPTION_TEXT_HIGH_RES_X + 1, OPTION_TEXT_HIGH_RES_Y, '*', make_attr(COLOR_YELLOW, COLOR_CYAN));
+        }
+        else {
+            char_at(OPTION_TEXT_HIGH_RES_X + 1, OPTION_TEXT_HIGH_RES_Y, ' ', make_attr(COLOR_YELLOW, COLOR_CYAN));
+        }            
+    }
+
+    if(g_globals.selected_option == 1) {
+        if (g_globals.option_mark_default) {
+            char_at(OPTION_TEXT_MARK_X + 1, OPTION_TEXT_MARK_Y, '*', make_attr(COLOR_BLACK, COLOR_YELLOW));
+        }
+        else {
+            char_at(OPTION_TEXT_MARK_X + 1, OPTION_TEXT_MARK_Y, 219, make_attr(COLOR_YELLOW, COLOR_CYAN));
+        }
+    }
+    else {
+        if (g_globals.option_mark_default) {
+            char_at(OPTION_TEXT_MARK_X + 1, OPTION_TEXT_MARK_Y, '*', make_attr(COLOR_YELLOW, COLOR_CYAN));
+        }
+        else {
+            char_at(OPTION_TEXT_MARK_X + 1, OPTION_TEXT_MARK_Y, ' ', make_attr(COLOR_YELLOW, COLOR_CYAN));
+        }            
+    }
+        
+    if(g_globals.selected_option == 2) {
+        if (g_globals.option_auto_save) {
+            char_at(OPTION_TEXT_AUTOSAVE_X + 1, OPTION_TEXT_AUTOSAVE_Y, '*', make_attr(COLOR_BLACK, COLOR_YELLOW));
+        }
+        else {
+            char_at(OPTION_TEXT_AUTOSAVE_X + 1, OPTION_TEXT_AUTOSAVE_Y, 219, make_attr(COLOR_YELLOW, COLOR_CYAN));
+        }
+    }
+    else {
+        if (g_globals.option_auto_save) {
+            char_at(OPTION_TEXT_AUTOSAVE_X + 1, OPTION_TEXT_AUTOSAVE_Y, '*', make_attr(COLOR_YELLOW, COLOR_CYAN));
+        }
+        else {
+            char_at(OPTION_TEXT_AUTOSAVE_X + 1, OPTION_TEXT_AUTOSAVE_Y, ' ', make_attr(COLOR_YELLOW, COLOR_CYAN));
+        }            
+    }
+    if(g_globals.selected_option == 3) {
+        if (g_globals.option_sound) {
+            char_at(OPTION_TEXT_SOUND_X + 1, OPTION_TEXT_SOUND_Y, '*', make_attr(COLOR_BLACK, COLOR_YELLOW));
+        }
+        else {
+            char_at(OPTION_TEXT_SOUND_X + 1, OPTION_TEXT_SOUND_Y, 219, make_attr(COLOR_YELLOW, COLOR_CYAN));
+        }
+    }
+    else {
+        if (g_globals.option_sound) {
+            char_at(OPTION_TEXT_SOUND_X + 1, OPTION_TEXT_SOUND_Y, '*', make_attr(COLOR_YELLOW, COLOR_CYAN));
+        }
+        else {
+            char_at(OPTION_TEXT_SOUND_X + 1, OPTION_TEXT_SOUND_Y, ' ', make_attr(COLOR_YELLOW, COLOR_CYAN));
+        }            
+    }
+}
+
+void draw_options_area(void) {
+    box_at(OPTIONS_DIALOG_X1, OPTIONS_DIALOG_Y1, OPTIONS_DIALOG_X2, OPTIONS_DIALOG_Y2, BORDER_DOUBLE, make_attr(COLOR_WHITE, COLOR_CYAN));
+    fill_box_at(OPTIONS_DIALOG_X1 + 1, OPTIONS_DIALOG_Y1 + 1, OPTIONS_DIALOG_X2 - 1, OPTIONS_DIALOG_Y2 - 1, ' ', make_attr(COLOR_WHITE, COLOR_CYAN));
+    string_at(OPTIONS_HEADER_X, OPTIONS_HEADER_Y, " Options ", make_attr(COLOR_YELLOW, COLOR_CYAN));
+    string_at(OPTION_TEXT_HIGH_RES_X, OPTION_TEXT_HIGH_RES_Y, "[ ] Use high res mode for map if available", make_attr(COLOR_WHITE, COLOR_CYAN));
+    string_at(OPTION_TEXT_MARK_X, OPTION_TEXT_MARK_Y, "[ ] Use mark mode as default", make_attr(COLOR_WHITE, COLOR_CYAN));
+    string_at(OPTION_TEXT_AUTOSAVE_X, OPTION_TEXT_AUTOSAVE_Y, "[ ] Auto-save on exit", make_attr(COLOR_WHITE, COLOR_CYAN));
+    string_at(OPTION_TEXT_SOUND_X, OPTION_TEXT_SOUND_Y, "[ ] Sound", make_attr(COLOR_WHITE, COLOR_CYAN));
+    string_at(OPTION_SAVE_X, OPTION_SAVE_Y, "  ( )ave  ", make_attr(COLOR_WHITE, COLOR_LIGHT_BLUE));
+    string_at(OPTION_CANCEL_X, OPTION_CANCEL_Y, "  ( )ancel  ", make_attr(COLOR_WHITE, COLOR_LIGHT_BLUE));
+    char_at(OPTION_SAVE_X + 3, OPTION_CANCEL_Y, 'S', make_attr(COLOR_YELLOW, COLOR_LIGHT_BLUE));
+    char_at(OPTION_CANCEL_X + 3, OPTION_CANCEL_Y, 'C', make_attr(COLOR_YELLOW, COLOR_LIGHT_BLUE));
+}
+
 void render_finished_state(void) {
     if (g_globals.render.map) {
         render_map();
@@ -719,6 +806,17 @@ void render_map_state(void) {
     if (g_globals.render.map) {
         render_map();
         g_globals.render.map = 0;
+    }
+}
+
+void render_opts_state(void) {
+    if (g_globals.render.options_area) {
+        draw_options_area();
+        g_globals.render.options_area = 0;
+    }
+    if (g_globals.render.options) {
+        draw_options();
+        g_globals.render.options = 0;
     }
 }
 
@@ -823,4 +921,6 @@ void clear_render_components(RenderComponents *r) {
     r->information_area = 0;
     r->drawn_square = 0;
     r->marks = 0;
+    r->options_area = 0;
+    r->options = 0;
 }

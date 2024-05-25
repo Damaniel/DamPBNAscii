@@ -28,6 +28,7 @@
 #define PROGRESS_FILE_DIR "progress"
 
 #define OPTIONS_FILE "DAMPBN_A.CFG"
+#define NUM_OPTIONS   4
 
 #define SAVE_MESSAGE_DURATION   18
 #define LOAD_MESSAGE_DURATION   18
@@ -94,6 +95,8 @@ typedef struct {
   unsigned char load_message;
   unsigned char map;
   unsigned char category_area;
+  unsigned char options_area;
+  unsigned char options;
 } RenderComponents;
 
 typedef struct {
@@ -156,6 +159,7 @@ typedef struct {
     int text_mode;
     char x_viewport_changed, y_viewport_changed;
     char option_high_res, option_mark_default, option_auto_save, option_sound;
+    char selected_option;
 } GameGlobals;
 
 typedef struct {

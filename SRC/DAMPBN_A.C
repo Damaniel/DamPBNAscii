@@ -87,7 +87,7 @@ void change_state(State new_state) {
             g_globals.render.load_picture_cursor = 1;
             break;
         case STATE_GAME:
-            if (g_globals.previous_state != STATE_MAP) {
+            if (g_globals.previous_state == STATE_LOAD_DIALOG) {
                 strncpy(g_globals.collection_name,  g_collections[g_globals.selected_collection].name, 8);
                 strncpy(g_globals.picture_file_basename, g_pictures[g_globals.selected_picture].name, 8);   
                 sprintf(filename, "RES/PICS/%s/%s.PIC", g_globals.collection_name, g_globals.picture_file_basename);
@@ -99,6 +99,7 @@ void change_state(State new_state) {
                     change_state(STATE_FINISHED);
                 }
                 else {
+                    // Coming back from the map or options screens
                     draw_all();
                     draw_puzzle_cursor();
                     if(g_globals.option_mark_default) {
@@ -119,6 +120,11 @@ void change_state(State new_state) {
             pause_game_timer();
             set_high_res_mode();
             g_globals.render.map = 1;
+            break;
+        case STATE_OPTS:
+            pause_game_timer();
+            g_globals.render.options = 1;
+            g_globals.render.options_area = 1;
             break;
         case STATE_FINISHED:
             if (!g_globals.saving_in_progress) {

@@ -286,6 +286,9 @@ void process_game_input(short key) {
             g_globals.render.puzzle_cursor = 1;
             g_globals.render.button_area = 1;
             break;
+        case KEY_O:
+            change_state(STATE_OPTS);
+            break;
         case KEY_LEFT_BRACKET:
             g_globals.old_palette_index = g_globals.palette_index;
             g_globals.palette_index -= 1;
@@ -474,6 +477,11 @@ void process_game_input(short key) {
                         set_correct_flag(cs, 1);
                         ++g_globals.progress;
                         g_globals.render.progress_area = 1;
+                        if(g_globals.option_sound) {
+                            sound(900);
+                            delay(15);
+                            nosound();
+                        }
                         if (g_globals.progress >= g_globals.total_picture_squares) {
                             change_state(STATE_FINISHED);
                         }
@@ -481,6 +489,11 @@ void process_game_input(short key) {
                     else {
                         set_correct_flag(cs, 0);
                         ++g_globals.mistakes;
+                        if(g_globals.option_sound) {
+                            sound(200);
+                            delay(70);
+                            nosound();
+                        }
                         g_globals.render.mistake_area = 1;
                     }
                 }
@@ -525,6 +538,69 @@ void process_finished_input(short key) {
     }
 }
 
+void process_options_input(short key) {
+    switch(get_scan_code(key)) {
+        case KEY_ESC:
+        case KEY_C:
+            change_state(STATE_GAME);
+            break;
+        case KEY_ENTER:
+        case KEY_S:
+            save_options_file();
+            change_state(STATE_GAME);
+        case KEY_DOWN:
+            ++g_globals.selected_option;
+            if(g_globals.selected_option >= NUM_OPTIONS) {
+                g_globals.selected_option = 0;
+            }
+            g_globals.render.options = 1;
+            break;
+        case KEY_UP:
+            --g_globals.selected_option;
+            if(g_globals.selected_option < 0) {
+                g_globals.selected_collection = NUM_OPTIONS -1;
+            }
+            g_globals.render.options = 1;
+            break;
+        case KEY_SPACE:
+            switch (g_globals.selected_option) {
+                case 0:     // high res mode
+                    if (g_globals.option_high_res == 0) {
+                        g_globals.option_high_res = 1;
+                    } 
+                    else {
+                        g_globals.option_high_res = 0;
+                    }
+                    break;
+                case 1:     // mark mode
+                    if (g_globals.option_mark_default == 0) {
+                        g_globals.option_mark_default = 1;
+                    }
+                    else {
+                        g_globals.option_mark_default = 0;
+                    }
+                    break;
+                case 2:     // autosave mode
+                    if (g_globals.option_auto_save == 0) {
+                        g_globals.option_auto_save = 1;
+                    }
+                    else {
+                        g_globals.option_auto_save = 0;
+                    }
+                    break;
+                case 3:     // sound mode
+                    if (g_globals.option_sound == 0) {
+                        g_globals.option_sound = 1;
+                    }
+                    else {
+                        g_globals.option_sound = 0;
+                    }
+                    break;
+            }
+            g_globals.render.options = 1;
+            break;
+    }
+}
 void process_input(short key) {
     switch(g_globals.current_state) {
         case STATE_TITLE:
@@ -535,6 +611,9 @@ void process_input(short key) {
             break;
         case STATE_GAME:
             process_game_input(key);
+            break;
+        case STATE_OPTS:
+            process_options_input(key);
             break;
         case STATE_MAP:
             process_map_input(key);
