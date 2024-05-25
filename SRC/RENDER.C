@@ -492,16 +492,18 @@ void draw_puzzle_cursor() {
     char color;
     ColorSquare *old_cs, *cs;
 
+    // If the y viewport changed, update the 'old' y location to the new one but leave the x location alone
     if (g_globals.y_viewport_changed) {
         old_cs = get_color_square(g_globals.current_picture, g_globals.old_cursor_x + g_globals.old_viewport_x, g_globals.cursor_y + g_globals.viewport_y);
     }
+    // If the x viewport changed, update the 'old' y location to the new one but leave the y location alone
     if (g_globals.x_viewport_changed) {
         old_cs = get_color_square(g_globals.current_picture, g_globals.cursor_x + g_globals.viewport_x, g_globals.old_cursor_y + g_globals.old_viewport_y);
     }
+    // Otherwise, the old location is just the old location
     else {
         old_cs = get_color_square(g_globals.current_picture, g_globals.old_cursor_x + g_globals.old_viewport_x, g_globals.old_cursor_y + g_globals.old_viewport_y);
     }
-    printf("%d %d %d %d - %d\n", g_globals.cursor_x, g_globals.cursor_y, g_globals.viewport_x, g_globals.viewport_y, old_cs->pal_entry);
     cs = get_color_square(g_globals.current_picture, g_globals.cursor_x + g_globals.viewport_x, g_globals.cursor_y + g_globals.viewport_y);
     color = old_cs->pal_entry;
 
