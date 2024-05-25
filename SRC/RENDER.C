@@ -497,7 +497,7 @@ void draw_puzzle_cursor() {
         old_cs = get_color_square(g_globals.current_picture, g_globals.old_cursor_x + g_globals.old_viewport_x, g_globals.cursor_y + g_globals.viewport_y);
     }
     // If the x viewport changed, update the 'old' y location to the new one but leave the y location alone
-    if (g_globals.x_viewport_changed) {
+    else if (g_globals.x_viewport_changed) {
         old_cs = get_color_square(g_globals.current_picture, g_globals.cursor_x + g_globals.viewport_x, g_globals.old_cursor_y + g_globals.old_viewport_y);
     }
     // Otherwise, the old location is just the old location
