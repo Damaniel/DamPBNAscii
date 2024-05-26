@@ -194,7 +194,7 @@ void render_screen(void) {
 void render_title_screen(void) {
     // Dump the screen to video memory
     if (g_globals.render.title) {
-        memcpy(g_screen, title_screen, 4000);
+        _fmemcpy(g_screen, title_screen, 4000);
         g_globals.render.title = 0;
     }
 }
@@ -224,11 +224,14 @@ void render_map() {
     }
 
     clear_screen();
+    if(start_x > 0 && end_x < 79 && start_y > 0 && end_y < g_globals.text_lines - 1) {
+        box_at(start_x - 1, start_y - 1, end_x + 1, end_y + 1, BORDER_DOUBLE, make_attr(COLOR_WHITE, COLOR_BLACK));
+    }
     for(j = start_y; j <= end_y; j++) {
         for(i = start_x; i <= end_x; i++) {
             cs = get_color_square(g_globals.current_picture, g_globals.map_x + i - start_x, g_globals.map_y + j - start_y);
             if(is_transparent(cs)) {
-                char_at(i, j, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));                
+                char_at(i, j, 176, make_attr(COLOR_BLUE, COLOR_BLACK));                
             }
             else {
                 if(is_filled_in(cs)) {
