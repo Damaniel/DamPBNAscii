@@ -516,43 +516,44 @@ def main():
         #  - Set num_colors to num_colors - 1
         #
         # Note - in the alpha mask, 0 is transparent and 255 is opaque
-        # if use_transparency == "1":
-        #     white_count = 0
-        #     index = -1
-        #     # get the index of (255, 255, 255) in palette, or -1 if it's not there
-        #     for i in range(0, len(palette), 3):
-        #         if palette[i] == 255 and palette[i+1] == 255 and palette[i+2] == 255:
-        #             index = int(i/3)
-        #     for j in range(alpha_channel.height):
-        #         for i in range(alpha_channel.width):
-        #             if alpha_channel.getpixel((i, j)) == 255 and image.getpixel((i, j)) == index:
-        #                 white_count = white_count + 1
-        #     print(f"There are {white_count} non-transparent white pixels")
-        #     if white_count == 0:
-        #         if index == -1:
-        #             print("Image probably isn't transparent - skipping")
-        #             use_transparency = '0'
-        #         else:
-        #             print(f"No other white pixels found - shifting palette...")
-        #             print(f"White palette entry found at {index}")
-        #             # Take all values after the index and shift them up one
-        #             for i in range(index * 3, len(palette)-3, 3):
-        #                 palette[i] = palette[i+3]
-        #                 palette[i+1] = palette[i+4]
-        #                 palette[i+2] = palette[i+5]
-        #             palette[len(palette)-3] = 0
-        #             palette[len(palette)-2] = 0
-        #             palette[len(palette)-1] = 0
-        #             # Scan the whole image and change all values that were shifted
-        #             for j in range(image.height):
-        #                 for i in range(image.width):
-        #                     if image.getpixel((i, j)) > index:
-        #                         image.putpixel((i, j), image.getpixel((i, j)) - 1)
-        #             image.putpalette(palette)
-        #             num_colors = num_colors - 1
-        #             palette[num_colors*3] = 0
-        #             palette[num_colors*3+1] = 0
-        #             palette[num_colors*3+1] = 0
+        if use_transparency == "1":
+            white_count = 0
+            index = -1
+            # get the index of (255, 255, 255) in palette, or -1 if it's not there
+            for i in range(0, len(palette), 3):
+                if palette[i] == 255 and palette[i+1] == 255 and palette[i+2] == 255:
+                    index = int(i/3)
+                    print(f"White found in palette position {index}")
+            for j in range(alpha_channel.height):
+                for i in range(alpha_channel.width):
+                    if alpha_channel.getpixel((i, j)) == 1 and image.getpixel((i, j)) == index:
+                        white_count = white_count + 1
+            print(f"There are {white_count} non-transparent white pixels")
+            if white_count == 0:
+                if index == -1:
+                    print("Image probably isn't transparent - skipping")
+                    use_transparency = '0'
+                else:
+                    print(f"No other white pixels found - shifting palette...")
+                    print(f"White palette entry found at {index}")
+                    # Take all values after the index and shift them up one
+                    for i in range(index * 3, len(palette)-3, 3):
+                        palette[i] = palette[i+3]
+                        palette[i+1] = palette[i+4]
+                        palette[i+2] = palette[i+5]
+                    palette[len(palette)-3] = 0
+                    palette[len(palette)-2] = 0
+                    palette[len(palette)-1] = 0
+                    # Scan the whole image and change all values that were shifted
+                    for j in range(image.height):
+                        for i in range(image.width):
+                            if image.getpixel((i, j)) > index:
+                                image.putpixel((i, j), image.getpixel((i, j)) - 1)
+                    image.putpalette(palette)
+                    num_colors = num_colors - 1
+                    palette[num_colors*3] = 0
+                    palette[num_colors*3+1] = 0
+                    palette[num_colors*3+1] = 0
 
         # Get the width and height of the image
         width, height = image.size

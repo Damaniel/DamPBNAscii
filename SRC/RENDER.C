@@ -357,13 +357,11 @@ void render_load_screen(void) {
     if (g_globals.render.load_collection_cursor) {
         char_at(LOAD_COLLECTIONS_TEXT_X - 2, LOAD_COLLECTIONS_TEXT_Y + g_globals.old_selected_collection - g_globals.old_top_collection, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));
         char_at(LOAD_COLLECTIONS_TEXT_X - 2, LOAD_COLLECTIONS_TEXT_Y + g_globals.selected_collection - g_globals.top_collection, 16, make_attr(COLOR_YELLOW, COLOR_BLACK));
-        // highlight the text here at some point
         g_globals.render.load_collection_cursor = 0;
     }
     if (g_globals.render.load_picture_cursor) {
         char_at(LOAD_PICTURES_TEXT_X - 2, LOAD_PICTURES_TEXT_Y + g_globals.old_selected_picture - g_globals.old_top_picture, ' ', make_attr(COLOR_WHITE, COLOR_BLACK));
         char_at(LOAD_PICTURES_TEXT_X - 2, LOAD_PICTURES_TEXT_Y + g_globals.selected_picture - g_globals.top_picture, 16, make_attr(COLOR_YELLOW, COLOR_BLACK));
-        // highlight the text here at some point
         g_globals.render.load_picture_cursor = 0;
     }
     if (g_globals.render.load_metadata_text) {
