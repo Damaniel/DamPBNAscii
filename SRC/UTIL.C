@@ -370,6 +370,11 @@ int load_progress_file(Picture *p) {
     int i, j;
     ColorSquare *cs;
 
+    // Clear some settings in case no progress is actually found
+    g_globals.elapsed_seconds = 0;
+    g_globals.progress = 0;
+    g_globals.mistakes = 0;
+
     sprintf(progress_file, "%s/%s/%s.pro",  PROGRESS_FILE_DIR, 
             g_globals.collection_name, 
             g_globals.picture_file_basename);

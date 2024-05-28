@@ -71,7 +71,6 @@ void process_load_dialog_input(short key) {
                 get_pictures(g_globals.selected_collection);
                 g_globals.selected_picture = 0;
                 g_globals.top_picture = 0;
-                printf("P %d %d %d %d\n", g_globals.selected_picture, g_globals.top_picture, g_globals.old_selected_picture, g_globals.old_top_picture);
                 g_globals.render.load_collections_list = 1;
                 g_globals.render.load_pictures_list = 1;
                 g_globals.render.load_collection_cursor = 1;
@@ -88,7 +87,6 @@ void process_load_dialog_input(short key) {
                     }
                     --g_globals.selected_picture;
                 }
-                printf("P %d %d %d %d\n", g_globals.selected_picture, g_globals.top_picture, g_globals.old_selected_picture, g_globals.old_top_picture);
                 g_globals.render.load_picture_cursor = 1;
                 g_globals.render.load_metadata_text = 1;
             }
@@ -112,7 +110,6 @@ void process_load_dialog_input(short key) {
                 get_pictures(g_globals.selected_collection);
                 g_globals.selected_picture = 0;
                 g_globals.top_picture = 0;
-                printf("C %d %d %d %d\n", g_globals.selected_picture, g_globals.top_picture, g_globals.old_selected_picture, g_globals.old_top_picture);
                 g_globals.render.load_pictures_list = 1;
                 g_globals.render.load_collection_cursor = 1;
                 g_globals.render.load_picture_cursor = 1;
@@ -132,7 +129,6 @@ void process_load_dialog_input(short key) {
                         ++g_globals.selected_picture;
                     }
                 }
-                printf("P %d %d %d %d\n", g_globals.selected_picture, g_globals.top_picture, g_globals.old_selected_picture, g_globals.old_top_picture);
                 g_globals.render.load_pictures_list = 1;
                 g_globals.render.load_picture_cursor = 1;
                 g_globals.render.load_metadata_text = 1;
